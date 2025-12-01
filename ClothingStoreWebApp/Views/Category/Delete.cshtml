@@ -1,0 +1,145 @@
+﻿@model ClothingStoreWebApp.Models.Category
+@{
+    ViewBag.Title = "Xóa Vĩnh Viễn Danh Mục - " + Model.CategoryName;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Xác Nhận Xóa Vĩnh Viễn Danh Mục
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-skull-crossbones"></i>
+                        <strong>CẢNH BÁO:</strong> Hành động này sẽ xóa vĩnh viễn danh mục khỏi database.
+                        <strong>KHÔNG THỂ KHÔI PHỤC!</strong>
+                    </div>
+
+                    @if (Model.SubCategories != null && Model.SubCategories.Any())
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-ban"></i>
+                            <strong>Không thể xóa!</strong> Danh mục này có <strong>@Model.SubCategories.Count danh mục con</strong>.
+                            Vui lòng xóa các danh mục con trước.
+                        </div>
+                    }
+
+                    @if (Model.Products != null && Model.Products.Any())
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-ban"></i>
+                            <strong>Không thể xóa!</strong> Danh mục này có <strong>@Model.Products.Count sản phẩm</strong>.
+                            Vui lòng xóa hoặc chuyển sản phẩm sang danh mục khác trước.
+                        </div>
+                    }
+
+                    <h5 class="mb-3">Thông tin danh mục sẽ bị xóa:</h5>
+
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 200px;">ID</th>
+                            <td>@Model.CategoryID</td>
+                        </tr>
+                        <tr>
+                            <th>Tên Danh Mục</th>
+                            <td><strong class="text-danger">@Model.CategoryName</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Loại</th>
+                            <td>
+                                @if (Model.ParentCategory != null)
+                                {
+                                    <span class="badge bg-secondary">
+                                        Danh mục con của: @Model.ParentCategory.CategoryName
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary">Danh mục gốc</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Danh mục con</th>
+                            <td>
+                                @if (Model.SubCategories != null && Model.SubCategories.Any())
+                                {
+                                    <span class="badge bg-danger">@Model.SubCategories.Count danh mục con</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Không có</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <td>
+                                @if (Model.Products != null && Model.Products.Any())
+                                {
+                                    <span class="badge bg-danger">@Model.Products.Count sản phẩm</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Không có</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Trạng thái</th>
+                            <td>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Đang hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Đã ẩn</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Mô Tả</th>
+                            <td>@(Model.Description ?? "Không có")</td>
+                        </tr>
+                        <tr>
+                            <th>Ngày Tạo</th>
+                            <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    </table>
+
+                    @using (Html.BeginForm("Delete", "Category", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.CategoryID)
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Hủy Bỏ
+                            </a>
+
+                            @if ((Model.SubCategories == null || !Model.SubCategories.Any()) &&
+                                 (Model.Products == null || !Model.Products.Any()))
+                            {
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('⚠️ BẠN CÓ CHẮC CHẮN MUỐN XÓA VĨNH VIỄN?\n\nDanh mục: ' + '@Model.CategoryName' + '\n\nHÀNH ĐỘNG NÀY KHÔNG THỂ KHÔI PHỤC!');">
+                                    <i class="fas fa-skull-crossbones"></i> Xác Nhận Xóa Vĩnh Viễn
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-ban"></i> Không Thể Xóa
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,705 @@
+﻿@using ClothingStoreWebApp.Helpers
+@model IEnumerable<ClothingStoreWebApp.Models.Product>
+@{
+    ViewBag.Title = "Admin Dashboard - Quản lý sản phẩm";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-tachometer-alt text-primary"></i>
+            Admin Dashboard
+        </h1>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small">Chào mừng trở lại!</span>
+            <span class="badge bg-success px-3 py-2">
+                <i class="fas fa-user-shield"></i> @Session["UserName"]
+            </span>
+        </div>
+    </div>
+    @* Success/Error Notifications *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Thành công!</strong> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Lỗi!</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["InfoMessage"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Thông tin:</strong> @TempData["InfoMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @* Statistics Cards *@
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">@ViewBag.TotalProducts</h4>
+                            <small>Sản phẩm hoạt động</small>
+                        </div>
+                        <i class="fas fa-box fa-2x opacity-75"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-primary border-0">
+                    <span class="text-white-50">
+                        <i class="fas fa-chart-line"></i> +3 sản phẩm tuần này
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">@(ViewBag.TotalRevenue ?? 0)</h4>
+                            <small>Doanh thu (VND)</small>
+                        </div>
+                        <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-success border-0">
+                    <span class="text-white-50">
+                        <i class="fas fa-arrow-up"></i> +15% so với tháng trước
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">@(ViewBag.TotalOrders ?? 0)</h4>
+                            <small>Đơn hàng tháng này</small>
+                        </div>
+                        <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-info border-0">
+                    <span class="text-white-50">
+                        <i class="fas fa-clock"></i> 5 đơn hàng hôm nay
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">@(ViewBag.TotalCustomers ?? 0)</h4>
+                            <small>Khách hàng</small>
+                        </div>
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-warning border-0">
+                    <span class="text-white-50">
+                        <i class="fas fa-user-plus"></i> +2 khách hàng mới
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Analytics Charts Row *@
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-chart-line text-primary"></i> Doanh thu 7 ngày gần đây</h6>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary active">7 ngày</button>
+                        <button class="btn btn-outline-primary">30 ngày</button>
+                        <button class="btn btn-outline-primary">3 tháng</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-fire text-danger"></i> Sản phẩm bán chạy</h6>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.PopularProducts != null)
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var product in ViewBag.PopularProducts)
+                            {
+                                <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary rounded text-white text-center" style="width: 30px; height: 30px; line-height: 30px; font-size: 12px;">
+                                            @(ViewBag.PopularProducts.ToList().IndexOf(product) + 1)
+                                        </div>
+                                        <span class="ms-2 small">@product.ProductName</span>
+                                    </div>
+                                    <strong class="text-success small">@(product.SalesCount ?? 0) bán</strong>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted small">Chưa có dữ liệu bán hàng</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Quick Actions *@
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-bell text-warning"></i> Hoạt động gần đây</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="d-flex align-items-center py-2">
+                            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                <i class="fas fa-plus text-white small"></i>
+                            </div>
+                            <div class="ms-3">
+                                <small class="text-muted">2 phút trước</small>
+                                <div>Sản phẩm "Nike Air Max" đã được thêm mới</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center py-2">
+                            <div class="bg-info rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                <i class="fas fa-edit text-white small"></i>
+                            </div>
+                            <div class="ms-3">
+                                <small class="text-muted">5 phút trước</small>
+                                <div>Sản phẩm "Adidas Track Jacket" đã được cập nhật</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center py-2">
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                <i class="fas fa-shopping-cart text-white small"></i>
+                            </div>
+                            <div class="ms-3">
+                                <small class="text-muted">10 phút trước</small>
+                                <div>Đơn hàng #ORD-001 đã được đặt</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="fas fa-plus-circle text-success"></i> Thao tác nhanh</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("Create", "Product")" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Thêm sản phẩm mới
+                        </a>
+                        <a href="@Url.Action("Index", "Category")" class="btn btn-primary">
+                            <i class="fas fa-tags"></i> Quản lý danh mục
+                        </a>
+                        <a href="@Url.Action("Index", "Brand")" class="btn btn-info">
+                            <i class="fas fa-trademark"></i> Quản lý thương hiệu
+                        </a>
+                        <a href="@Url.Action("Orders", "Admin")" class="btn btn-warning">
+                            <i class="fas fa-shopping-bag"></i> Xem đơn hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Advanced Filter Section *@
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0"><i class="fas fa-filter text-primary"></i> Bộ lọc và tìm kiếm sản phẩm</h6>
+        </div>
+        <div class="card-body">
+            @using (Html.BeginForm("Index", "Admin", FormMethod.Get, new { @class = "row g-3" }))
+            {
+                <div class="col-md-3">
+                    <label class="form-label">Danh mục</label>
+                    <select name="categoryId" class="form-select">
+                        <option value="">Tất cả danh mục</option>
+                        @foreach (var category in ViewBag.Categories as IEnumerable<ClothingStoreWebApp.Models.Category> ?? new List<ClothingStoreWebApp.Models.Category>())
+                        {
+                            <option value="@category.CategoryID" @(ViewBag.SelectedCategoryId?.ToString() == category.CategoryID.ToString() ? "selected" : "")>
+                                @category.CategoryName
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Thương hiệu</label>
+                    <select name="brandId" class="form-select">
+                        <option value="">Tất cả thương hiệu</option>
+                        @foreach (var brand in ViewBag.Brands as IEnumerable<ClothingStoreWebApp.Models.Brand> ?? new List<ClothingStoreWebApp.Models.Brand>())
+                        {
+                            <option value="@brand.BrandID" @(ViewBag.SelectedBrandId?.ToString() == brand.BrandID.ToString() ? "selected" : "")>
+                                @brand.BrandName
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Tìm kiếm</label>
+                    <input type="text" name="search" class="form-control" placeholder="Tìm theo tên sản phẩm hoặc mô tả..." value="@ViewBag.SearchTerm" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Results Summary *@
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="mb-0">📦 Danh sách sản phẩm</h5>
+            <small class="text-muted">
+                Hiển thị @Model.Count() sản phẩm
+                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm as string))
+                {
+                    <span> - Kết quả cho: "<strong>@ViewBag.SearchTerm</strong>"</span>
+                }
+            </small>
+        </div>
+        <div class="btn-group btn-group-sm">
+            <a href="@Url.Action("Create", "Product")" class="btn btn-success">
+                <i class="fas fa-plus"></i> Thêm sản phẩm
+            </a>
+            <a href="@Url.Action("Export", "Admin")" class="btn btn-outline-secondary">
+                <i class="fas fa-download"></i> Xuất Excel
+            </a>
+        </div>
+    </div>
+
+    @* Products Table *@
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th width="80">Hình</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Danh mục</th>
+                        <th>Thương hiệu</th>
+                        <th width="120">Giá gốc</th>
+                        <th width="80">Giới tính</th>
+                        <th width="100">Trạng thái</th>
+                        <th width="80">Nổi bật</th>
+                        <th width="120">Ngày tạo</th>
+                        <th width="180" class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @if (item.ProductImages != null && item.ProductImages.Any())
+                                    {
+                                        var primaryImage = item.ProductImages.OrderBy(pi => pi.SortOrder).FirstOrDefault();
+                                        <img src="@primaryImage.ImageURL" alt="@item.ProductName" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 60px; height: 60px;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>@item.ProductName</strong>
+                                        <br />
+                                        <small class="text-muted">@(item.Description?.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)</small>
+                                    </div>
+                                </td>
+                                <td>@(item.Category?.CategoryName ?? "N/A")</td>
+                                <td>@(item.Brand?.BrandName ?? "N/A")</td>
+                                <td><strong class="text-primary">@item.BasePrice.ToString("N0") ₫</strong></td>
+                                <td>
+                                    @if (item.Gender == "Nam")
+                                    {
+                                        <span class="badge bg-info">Nam</span>
+                                    }
+                                    else if (item.Gender == "Nữ")
+                                    {
+                                        <span class="badge bg-pink">Nữ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Unisex</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Đã tắt</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsFeatured)
+                                    {
+                                        <i class="fas fa-star text-warning" title="Nổi bật"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star text-muted" title="Thường"></i>
+                                    }
+                                </td>
+                                <td><small>@item.CreatedAt.ToString("dd/MM/yyyy")</small></td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="@Url.Action("Details", "Product", new { id = item.ProductID })" class="btn btn-outline-info btn-sm" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        @if (item.IsActive)
+                                        {
+                                            <a href="@Url.Action("Edit", "Product", new { id = item.ProductID })" class="btn btn-outline-warning btn-sm" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+
+                                            using (Html.BeginForm("SoftDelete", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.ProductID)
+                                                <button type="submit" class="btn btn-outline-warning btn-sm" title="Ẩn sản phẩm" onclick="return confirm('Ẩn sản phẩm này khỏi website?')">
+                                                    <i class="fas fa-eye-slash" style="color: green;"></i>
+                                                </button>
+                                            }
+
+                                            using (Html.BeginForm("HardDelete", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.ProductID)
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa vĩnh viễn" onclick="return confirm('⚠️ XÓA VĨNH VIỄN sản phẩm này? KHÔNG THỂ hoàn tác!')">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            using (Html.BeginForm("Restore", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.ProductID)
+                                                <button type="submit" class="btn btn-outline-success btn-sm" title="Khôi phục sản phẩm">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                            }
+
+                                            using (Html.BeginForm("HardDelete", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.ProductID)
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa vĩnh viễn" onclick="return confirm('⚠️ XÓA VĨNH VIỄN sản phẩm này?')">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="10" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <div>Không có sản phẩm nào</div>
+                                <a href="@Url.Action("Create", "Product")" class="btn btn-primary mt-2">
+                                    <i class="fas fa-plus"></i> Thêm sản phẩm đầu tiên
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @* Pagination *@
+    @if (ViewBag.TotalPages != null && (int)ViewBag.TotalPages > 1)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div>
+                <small class="text-muted">
+                    Trang @ViewBag.CurrentPage / @ViewBag.TotalPages
+                </small>
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    @if ((int)ViewBag.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="?page=@((int)ViewBag.CurrentPage - 1)">Trước</a>
+                        </li>
+                    }
+
+                    @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @((int)ViewBag.CurrentPage == i ? "active" : "")">
+                            <a class="page-link" href="?page=@i">@i</a>
+                        </li>
+                    }
+
+                    @if ((int)ViewBag.CurrentPage < (int)ViewBag.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="?page=@((int)ViewBag.CurrentPage + 1)">Sau</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+@* Custom CSS *@
+<style>
+    .bg-pink {
+        background-color: #e91e63 !important;
+    }
+
+    .timeline .d-flex {
+        border-left: 2px solid #e9ecef;
+        margin-left: 15px;
+        padding-left: 20px;
+        position: relative;
+    }
+
+        .timeline .d-flex:last-child {
+            border-left: none;
+        }
+
+        .timeline .d-flex::before {
+            content: '';
+            width: 2px;
+            height: 100%;
+            background-color: #e9ecef;
+            position: absolute;
+            left: -2px;
+            top: 35px;
+        }
+
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 25px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    }
+
+    /* ✅ NOTIFICATION ANIMATIONS */
+keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification i {
+    font-size: 1.2rem;
+}
+</s
+</style>
+
+@* Chart.js Script *@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Revenue Chart
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
+            datasets: [{
+                label: 'Doanh thu (VND)',
+                data: [1200000, 1900000, 800000, 2100000, 1600000, 2400000, 1800000],
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function (value) {
+                            return new Intl.NumberFormat('vi-VN').format(value) + '₫';
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    radius: 4,
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+
+    // Auto refresh data every 5 minutes
+    setInterval(() => {
+        // You can implement AJAX call to refresh data here
+        console.log('Refreshing dashboard data...');
+    }, 300000);
+
+// ✅ NOTIFICATION FUNCTION SoftDelete/Restore
+function showSuccessNotification(message) {
+    // Create notification div
+    var notification = document.createElement('div');
+    notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease;';
+    notification.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + message;
+    document.body.appendChild(notification);
+
+    // Auto remove after 3 seconds
+    setTimeout(function() {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(function() {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+function showErrorNotification(message) {
+    // Create notification div
+    var notification = document.createElement('div');
+    notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease;';
+    notification.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + message;
+    document.body.appendChild(notification);
+
+    // Auto remove after 3 seconds
+    setTimeout(function() {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(function() {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+function showInfoNotification(message) {
+    // Create notification div
+    var notification = document.createElement('div');
+    notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #17a2b8; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease;';
+    notification.innerHTML = '<i class="fas fa-info-circle me-2"></i>' + message;
+    document.body.appendChild(notification);
+
+    // Auto remove after 3 seconds
+    setTimeout(function() {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(function() {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+// Check for TempData messages on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Get TempData values
+    var successMessage = '@TempData["SuccessMessage"]';
+    var errorMessage = '@TempData["ErrorMessage"]';
+    var infoMessage = '@TempData["InfoMessage"]';
+
+    // Show notifications if messages exist
+    if (successMessage && successMessage.trim() !== '') {
+        showSuccessNotification(successMessage);
+    }
+
+    if (errorMessage && errorMessage.trim() !== '') {
+        showErrorNotification(errorMessage);
+    }
+
+    if (infoMessage && infoMessage.trim() !== '') {
+        showInfoNotification(infoMessage);
+    }
+});
+</script>
+
+</script>

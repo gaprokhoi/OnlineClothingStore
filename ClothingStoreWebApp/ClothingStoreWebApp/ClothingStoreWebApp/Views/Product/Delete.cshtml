@@ -1,0 +1,100 @@
+﻿@model ClothingStoreWebApp.Models.Product
+@{
+    ViewBag.Title = "Xóa sản phẩm - " + Model.ProductName;
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            Xác nhận xóa sản phẩm
+        </h2>
+        @Html.ActionLink("Quay lại", "Index", "Admin", null, new { @class = "btn btn-secondary" })
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-info-circle"></i> Bạn muốn xóa theo cách nào?</h5>
+                <p><strong>Ẩn sản phẩm:</strong> Sản phẩm sẽ không hiển thị với khách hàng nhưng dữ liệu vẫn được lưu trữ. Có thể khôi phục sau.</p>
+                <p><strong>Xóa vĩnh viễn:</strong> Sản phẩm và tất cả dữ liệu liên quan sẽ bị xóa hoàn toàn khỏi database. <span class="text-danger">KHÔNG THỂ khôi phục!</span></p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin sản phẩm sẽ bị xóa</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr><td><strong>Tên:</strong></td><td>@Model.ProductName</td></tr>
+                        <tr><td><strong>Danh mục:</strong></td><td>@(Model.Category?.CategoryName ?? "N/A")</td></tr>
+                        <tr><td><strong>Thương hiệu:</strong></td><td>@(Model.Brand?.BrandName ?? "N/A")</td></tr>
+                        <tr><td><strong>Giá:</strong></td><td><strong class="text-primary">@Model.BasePrice.ToString("C0")</strong></td></tr>
+                        <tr>
+                            <td><strong>Trạng thái hiện tại:</strong></td>
+                            <td>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Đang hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Đã ẩn</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr><td><strong>Ngày tạo:</strong></td><td>@Model.CreatedAt.ToString("dd/MM/yyyy")</td></tr>
+                    </table>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="mt-3">
+                            <h6>Mô tả:</h6>
+                            <p class="text-muted">@Model.Description</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Actions với 2 loại delete *@
+            <div class="d-flex gap-2 mt-4">
+                @* Soft Delete - Ẩn sản phẩm *@
+                @using (Html.BeginForm("SoftDelete", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("id", Model.ProductID)
+                    <button type="submit" class="btn btn-warning" onclick="return confirm('Bạn có chắc muốn ẨN sản phẩm này khỏi website? (Có thể khôi phục sau)')">
+                        <i class="fas fa-eye-slash"></i> Ẩn sản phẩm
+                    </button>
+                }
+
+                @* Hard Delete - Xóa vĩnh viễn *@
+                @using (Html.BeginForm("HardDelete", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("id", Model.ProductID)
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('⚠️ CẢNH BÁO: Bạn có CHẮC CHẮN muốn XÓA VĨNH VIỄN sản phẩm này? Hành động này KHÔNG THỂ hoàn tác!')">
+                        <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn
+                    </button>
+                }
+
+                @Html.ActionLink("Hủy bỏ", "Index", "Admin", null, new { @class = "btn btn-secondary" })
+                @Html.ActionLink("Chỉnh sửa thay vì xóa", "Edit", new { id = Model.ProductID }, new { @class = "btn btn-info" })
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            @if (Model.ProductImages != null && Model.ProductImages.Any())
+            {
+                var primaryImage = Model.ProductImages.OrderBy(pi => pi.SortOrder).FirstOrDefault();
+                <img src="@primaryImage.ImageURL" alt="@Model.ProductName" class="img-fluid rounded shadow">
+            }
+            else
+            {
+                <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 200px;">
+                    <i class="fas fa-image fa-3x text-muted"></i>
+                </div>
+            }
+        </div>
+    </div>
+</div>

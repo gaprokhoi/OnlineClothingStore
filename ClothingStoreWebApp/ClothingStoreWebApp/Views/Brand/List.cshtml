@@ -1,0 +1,128 @@
+﻿@model IEnumerable<ClothingStoreWebApp.Models.Brand>
+@{
+    ViewBag.Title = "Thương hiệu";
+    var categories = ViewBag.Categories as List<ClothingStoreWebApp.Models.Category>;
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        @* Sidebar - Categories *@
+        <div class="col-md-3 col-lg-2">
+            <div class="sidebar">
+                <div class="sidebar-section mb-4">
+                    <div class="sidebar-header bg-dark text-white p-3 rounded-top d-flex align-items-center">
+                        <i class="fas fa-th-large me-2"></i>
+                        <h5 class="mb-0">Danh mục</h5>
+                    </div>
+                    <div class="sidebar-body bg-white border border-top-0 rounded-bottom">
+                        <ul class="list-unstyled mb-0">
+                            @if (categories != null && categories.Any())
+                            {
+                                foreach (var category in categories.Where(c => c.ParentCategoryID == null))
+                                {
+                                    <li class="border-bottom">
+                                        <a href="@Url.Action("Index", "Product", new { categoryId = category.CategoryID })" class="d-flex align-items-center justify-content-between p-3 text-decoration-none text-dark category-link">
+                                            <span>
+                                                @if (!string.IsNullOrEmpty(category.ImageURL))
+                                                {
+                                                    <img src="@category.ImageURL" alt="@category.CategoryName" class="me-2" style="width: 20px; height: 20px; object-fit: cover;">
+                                                }
+                                                @category.CategoryName
+                                            </span>
+                                            <i class="fas fa-chevron-right text-muted small"></i>
+                                        </a>
+
+                                        @if (category.SubCategories != null && category.SubCategories.Any(sc => sc.IsActive))
+                                        {
+                                            <ul class="list-unstyled ps-4 mb-0 bg-light">
+                                                @foreach (var subCat in category.SubCategories.Where(sc => sc.IsActive))
+                                                {
+                                                    <li class="border-bottom border-light">
+                                                        <a href="@Url.Action("Index", "Product", new { categoryId = subCat.CategoryID })" class="d-block p-2 text-decoration-none text-secondary small category-link">
+                                                            <i class="fas fa-angle-right me-1"></i>
+                                                            @subCat.CategoryName
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                @* Brands Sidebar section if you want, or can omit *@
+            </div>
+        </div>
+
+        @* Main brand grid *@
+        <div class="col-md-9 col-lg-10">
+            <div class="main-content">
+                <div class="mb-4">
+                    <h2 class="h4 mb-3">
+                        <i class="fas fa-tags text-primary"></i>
+                        Thương hiệu
+                    </h2>
+                    <p class="text-muted">Khám phá các thương hiệu nổi bật</p>
+                </div>
+
+                <div class="row g-3">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var brand in Model)
+                        {
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                                <a href="@Url.Action("Index", "Product", new { brandId = brand.BrandID })" class="brand-card d-block p-3 border rounded text-center text-decoration-none">
+                                    @if (!string.IsNullOrEmpty(brand.LogoURL))
+                                    {
+                                        <img src="@brand.LogoURL" alt="@brand.BrandName" class="img-fluid mb-2" style="max-height: 60px; object-fit: contain;">
+                                    }
+                                    else
+                                    {
+                                        <div class="brand-placeholder bg-light d-flex align-items-center justify-content-center mb-2" style="height: 60px;">
+                                            <i class="fas fa-tag text-muted"></i>
+                                        </div>
+                                    }
+                                    <small class="text-dark">@brand.BrandName</small>
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                <p>Chưa có thương hiệu nào</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .brand-card {
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+        .brand-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: #0d6efd !important;
+        }
+
+    .category-link {
+        transition: all 0.2s ease;
+    }
+
+        .category-link:hover {
+            background-color: #f8f9fa;
+            padding-left: 1.2rem !important;
+        }
+</style>

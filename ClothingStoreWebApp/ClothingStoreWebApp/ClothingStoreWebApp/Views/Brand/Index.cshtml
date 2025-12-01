@@ -1,0 +1,186 @@
+﻿@model IEnumerable<ClothingStoreWebApp.Models.Brand>
+@{
+    ViewBag.Title = "Quản Lý Thương Hiệu";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-tags text-primary"></i>
+            Quản Lý Thương Hiệu
+        </h2>
+        <a href="@Url.Action("Create")" class="btn btn-success">
+            <i class="fas fa-plus"></i> Thêm Thương Hiệu
+        </a>
+    </div>
+
+    @* Success/Error Messages *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle"></i> <strong>Thành công!</strong> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle"></i> <strong>Lỗi!</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th width="60">ID</th>
+                        <th width="80">Logo</th>
+                        <th>Tên Thương Hiệu</th>
+                        <th width="200">Website</th>
+                        <th width="100">Số sản phẩm</th>
+                        <th width="100">Trạng thái</th>
+                        <th width="100">Ngày tạo</th>
+                        <th width="200" class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.BrandID</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.LogoURL))
+                                    {
+                                        <img src="@item.LogoURL" alt="@item.BrandName" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: contain;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 1px solid #ddd;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <strong>@item.BrandName</strong>
+                                    @if (!string.IsNullOrEmpty(item.Description))
+                                    {
+                                        <br /><small class="text-muted">@item.Description.Substring(0, Math.Min(60, item.Description.Length))@(item.Description.Length > 60 ? "..." : "")</small>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Website))
+                                    {
+                                        <a href="@item.Website" target="_blank" class="text-primary">
+                                            <i class="fas fa-external-link-alt"></i> Website
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (item.Products != null && item.Products.Any())
+                                    {
+                                        var activeProductCount = item.Products.Count(p => p.IsActive);
+                                        <span class="badge bg-dark">@activeProductCount</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">0</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle"></i>
+                                            Hoạt động
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-times-circle"></i>
+                                            Đã ẩn
+                                        </span>
+                                    }
+                                </td>
+                                <td><small>@item.CreatedAt.ToString("dd/MM/yyyy")</small></td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="@Url.Action("Details", new { id = item.BrandID })" class="btn btn-outline-info btn-sm" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        @if (item.IsActive)
+                                        {
+                                            <a href="@Url.Action("Edit", new { id = item.BrandID })" class="btn btn-outline-warning btn-sm" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+
+                                            using (Html.BeginForm("SoftDelete", "Brand", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.BrandID)
+                                                <button type="submit" class="btn btn-outline-warning btn-sm" title="Ẩn thương hiệu" onclick="return confirm('Ẩn thương hiệu @item.BrandName? Có thể khôi phục lại.')">
+                                                    <i class="fas fa-eye-slash" style="color: green;"></i>
+                                                </button>
+                                            }
+
+                                            <a href="@Url.Action("Delete", new { id = item.BrandID })" class="btn btn-outline-danger btn-sm" title="Xóa vĩnh viễn">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            using (Html.BeginForm("Restore", "Brand", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.BrandID)
+                                                <button type="submit" class="btn btn-outline-success btn-sm" title="Khôi phục thương hiệu">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                            }
+
+                                            <a href="@Url.Action("Delete", new { id = item.BrandID })" class="btn btn-outline-danger btn-sm" title="Xóa vĩnh viễn">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Chưa có thương hiệu nào</p>
+                                <a href="@Url.Action("Create")" class="btn btn-success mt-2">
+                                    <i class="fas fa-plus"></i> Thêm Thương Hiệu Đầu Tiên
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table td {
+        vertical-align: middle;
+    }
+
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style>

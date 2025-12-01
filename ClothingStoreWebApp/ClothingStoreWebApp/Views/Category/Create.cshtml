@@ -1,0 +1,80 @@
+﻿@model ClothingStoreWebApp.Models.Category
+@{
+    ViewBag.Title = "Thêm Danh Mục Mới";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle"></i>
+                        Thêm Danh Mục Mới
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("Create", "Category", FormMethod.Post, new { @class = "needs-validation" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.CategoryName, "Tên Danh Mục", new { @class = "form-label required" })
+                            @Html.TextBoxFor(m => m.CategoryName, new { @class = "form-control", placeholder = "Nhập tên danh mục", required = "required" })
+                            @Html.ValidationMessageFor(m => m.CategoryName, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.ParentCategoryID, "Danh Mục Cha", new { @class = "form-label" })
+                            @Html.DropDownList("ParentCategoryID", null, "-- Không có (Danh mục gốc) --", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.ParentCategoryID, "", new { @class = "text-danger" })
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Để trống nếu đây là danh mục gốc (không có danh mục cha)
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Description, "Mô Tả", new { @class = "form-label" })
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4, placeholder = "Nhập mô tả cho danh mục" })
+                            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.ImageURL, "URL Hình Ảnh", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.ImageURL, new { @class = "form-control", placeholder = "https://example.com/image.jpg" })
+                            @Html.ValidationMessageFor(m => m.ImageURL, "", new { @class = "text-danger" })
+                            <small class="text-muted">Nhập đường dẫn URL của hình ảnh</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Trạng Thái</label>
+                                <div class="form-check form-switch">
+                                    @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input", @checked = "checked" })
+                                    @Html.LabelFor(m => m.IsActive, "Kích hoạt", new { @class = "form-check-label" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay Lại
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Lưu Danh Mục
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

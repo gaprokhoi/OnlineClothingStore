@@ -1,0 +1,378 @@
+﻿@model ClothingStoreWebApp.ViewModels.LoginViewModel
+@{
+    ViewBag.Title = "Đăng nhập";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    :root {
+        --lv-brown: #5e3a1f;
+        --lv-gold: #c9a961;
+        --lv-black: #1a1a1a;
+        --lv-cream: #f5f3f0;
+        --lv-white: #ffffff;
+    }
+
+    body {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        background-color: var(--lv-white);
+        color: var(--lv-black);
+        letter-spacing: 0.02em;
+    }
+
+    /* Hero Section */
+    .lv-login-hero {
+        background-color: var(--lv-cream);
+        padding: clamp(40px, 6vw, 60px) 0;
+        text-align: center;
+        border-bottom: 1px solid #e0ddd8;
+        margin-bottom: 0;
+    }
+
+        .lv-login-hero h2 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .lv-login-hero p {
+            font-size: 0.9rem;
+            color: #666;
+            letter-spacing: 0.05em;
+            font-weight: 300;
+        }
+
+    /* Main Container */
+    .lv-login-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: clamp(40px, 6vw, 80px) clamp(20px, 3vw, 40px);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
+        gap: clamp(40px, 5vw, 60px);
+        align-items: start;
+    }
+
+    /* Login Form */
+    .lv-login-form {
+        background-color: var(--lv-white);
+        padding: clamp(30px, 4vw, 50px);
+        border: 1px solid #e0ddd8;
+    }
+
+    .lv-form-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 30px;
+        font-weight: 500;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e0ddd8;
+    }
+
+    /* Alert Messages */
+    .lv-alert {
+        padding: 15px 20px;
+        margin-bottom: 25px;
+        border: 1px solid #e0ddd8;
+        background-color: var(--lv-cream);
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+        .lv-alert i {
+            margin-top: 2px;
+            color: var(--lv-gold);
+        }
+
+    .lv-alert-info {
+        background-color: #f0f7ff;
+        border-color: #cce5ff;
+        color: #004085;
+    }
+
+    .lv-alert-warning {
+        background-color: #fff8e1;
+        border-color: #ffecb3;
+        color: #856404;
+    }
+
+    .lv-alert strong {
+        font-weight: 500;
+    }
+
+    /* Validation Summary */
+    .lv-validation-summary {
+        padding: 15px 20px;
+        margin-bottom: 25px;
+        border: 1px solid #f5c6cb;
+        background-color: #f8d7da;
+        color: #721c24;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+    }
+
+    /* Form Groups */
+    .lv-form-group {
+        margin-bottom: 25px;
+    }
+
+    .lv-form-label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--lv-black);
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+
+    .lv-form-control {
+        width: 100%;
+        padding: 14px 18px;
+        border: 1px solid var(--lv-black);
+        background-color: var(--lv-white);
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+        transition: all 0.3s ease;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+
+        .lv-form-control::placeholder {
+            color: #999;
+            letter-spacing: 0.05em;
+        }
+
+        .lv-form-control:focus {
+            outline: none;
+            border-color: var(--lv-gold);
+            box-shadow: 0 0 0 1px var(--lv-gold);
+        }
+
+        .lv-form-control:hover {
+            border-color: #666;
+        }
+
+    /* Validation Messages */
+    .lv-validation-error {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.75rem;
+        color: #721c24;
+        letter-spacing: 0.05em;
+    }
+
+    /* Checkbox */
+    .lv-checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+
+    .lv-checkbox {
+        width: 18px;
+        height: 18px;
+        border: 1px solid var(--lv-black);
+        cursor: pointer;
+        accent-color: var(--lv-black);
+    }
+
+    .lv-checkbox-label {
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+    }
+
+    /* Buttons */
+    .lv-btn-submit {
+        width: 100%;
+        padding: 16px 40px;
+        background-color: var(--lv-black);
+        color: var(--lv-white);
+        border: 1px solid var(--lv-black);
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-weight: 400;
+        margin-bottom: 20px;
+    }
+
+        .lv-btn-submit:hover {
+            background-color: var(--lv-white);
+            color: var(--lv-black);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .lv-btn-submit i {
+            font-size: 0.9rem;
+        }
+
+    /* Register Link */
+    .lv-register-link {
+        display: block;
+        text-align: center;
+        padding: 15px;
+        border: 1px solid #e0ddd8;
+        background-color: var(--lv-cream);
+        text-decoration: none;
+        color: var(--lv-black);
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+        transition: all 0.3s ease;
+    }
+
+        .lv-register-link:hover {
+            border-color: var(--lv-black);
+            background-color: var(--lv-white);
+            color: var(--lv-black);
+        }
+
+    /* Help Card */
+    .lv-help-card {
+        background-color: var(--lv-cream);
+        padding: clamp(30px, 4vw, 40px);
+        border: 1px solid #e0ddd8;
+    }
+
+    .lv-help-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .lv-help-title i {
+            color: var(--lv-gold);
+        }
+
+    .lv-help-text {
+        font-size: 0.9rem;
+        line-height: 1.7;
+        color: #666;
+        margin-bottom: 15px;
+    }
+
+    .lv-help-alert {
+        padding: 15px;
+        background-color: #fff8e1;
+        border: 1px solid #ffecb3;
+        color: #856404;
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+
+    /* Hidden Field */
+    input[type="hidden"] {
+        display: none;
+    }
+</style>
+
+<div class="lv-login-hero">
+    <h2>Đăng Nhập</h2>
+    <p>Truy cập tài khoản của bạn</p>
+</div>
+
+<div class="lv-login-container">
+    <div class="lv-login-form">
+        @* Return URL Alert *@
+        @if (!string.IsNullOrEmpty(Model.ReturnUrl))
+        {
+            <div class="lv-alert lv-alert-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    Bạn sẽ được chuyển đến: <strong>@Model.ReturnUrl</strong> sau khi đăng nhập.
+                </div>
+            </div>
+        }
+
+        @using (Html.BeginForm("Login", "User", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.ReturnUrl)
+
+            @* Validation Summary *@
+            if (!Html.ViewData.ModelState.IsValid)
+            {
+                <div class="lv-validation-summary">
+                    @Html.ValidationSummary(true, "", new { @class = "" })
+                </div>
+            }
+
+            <h3 class="lv-form-title">Thông tin đăng nhập</h3>
+
+            @* Email Field *@
+            <div class="lv-form-group">
+                @Html.LabelFor(m => m.Email, new { @class = "lv-form-label" })
+                @Html.TextBoxFor(m => m.Email, new { @class = "lv-form-control", placeholder = "example@email.com", id = "Email" })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "lv-validation-error" })
+            </div>
+
+            @* Password Field *@
+            <div class="lv-form-group">
+                @Html.LabelFor(m => m.Password, new { @class = "lv-form-label" })
+                @Html.PasswordFor(m => m.Password, new { @class = "lv-form-control", placeholder = "••••••••" })
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "lv-validation-error" })
+            </div>
+
+            @* Remember Me Checkbox *@
+            <div class="lv-checkbox-group">
+                @Html.CheckBoxFor(m => m.RememberMe, new { @class = "lv-checkbox" })
+                @Html.LabelFor(m => m.RememberMe, "Ghi nhớ đăng nhập", new { @class = "lv-checkbox-label" })
+            </div>
+
+            @* Submit Button *@
+            <button type="submit" class="lv-btn-submit">
+                <i class="fas fa-sign-in-alt"></i>
+                Đăng nhập
+            </button>
+
+            @* Register Link *@
+            @Html.ActionLink("Đăng ký tài khoản mới", "Register", "User",
+                new { returnUrl = Model.ReturnUrl }, new { @class = "lv-register-link" })
+        }
+    </div>
+
+    @* Help Card *@
+    <div class="lv-help-card">
+        <h6 class="lv-help-title">
+            <i class="fas fa-shopping-cart"></i>
+            Trợ giúp mua sắm
+        </h6>
+        <p class="lv-help-text">
+            Đăng nhập để truy cập giỏ hàng và hoàn tất đơn hàng của bạn.
+        </p>
+        @if (!string.IsNullOrEmpty(Model.ReturnUrl) && Model.ReturnUrl.ToLower().Contains("/cart"))
+        {
+            <div class="lv-help-alert">
+                Sau khi đăng nhập, bạn sẽ được chuyển về giỏ hàng.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var emailField = document.getElementById('Email');
+            if (emailField) emailField.focus();
+        });
+    </script>
+}

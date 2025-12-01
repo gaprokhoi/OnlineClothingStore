@@ -1,0 +1,778 @@
+﻿@model ClothingStoreWebApp.Models.Product
+@{
+    ViewBag.Title = Model.ProductName + " - Chi tiết";
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">@Html.ActionLink("Trang chủ", "Index", "Home")</li>
+            <li class="breadcrumb-item">@Html.ActionLink("Sản phẩm", "Index", "Product")</li>
+            <li class="breadcrumb-item active">@Model.ProductName</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        @* Product Images *@
+        <div class="col-md-6">
+            <div class="product-gallery">
+                @if (Model.ProductImages != null && Model.ProductImages.Any())
+                {
+                    var images = Model.ProductImages.OrderBy(pi => pi.SortOrder).ToList();
+
+                    @* Main Image *@
+                    <div class="main-image-wrapper mb-3">
+                        <img id="mainProductImage" src="@images.FirstOrDefault().ImageURL" alt="@Model.ProductName" class="main-image img-fluid rounded shadow">
+                    </div>
+
+                    @* Thumbnail Images *@
+                    if (images.Count > 1)
+                    {
+                        <div class="thumbnail-images d-flex gap-2 flex-wrap justify-content-center">
+                            @foreach (var image in images.Take(5))
+                            {
+                                <div class="thumbnail-wrapper">
+                                    <img src="@image.ImageURL" alt="@Model.ProductName" class="thumbnail-img rounded"
+                                         onclick="changeMainImage(this)">
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-image text-center p-5 border rounded bg-light">
+                        <i class="fas fa-image fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Không có hình ảnh</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Product Information *@
+        <div class="col-md-6">
+            <div class="product-info">
+                @* Product Title *@
+                <h1 class="product-title h2 mb-3">@Model.ProductName</h1>
+
+                @* Category and Brand *@
+                <div class="product-meta mb-3">
+                    <span class="badge bg-secondary me-2">@Model.Category.CategoryName</span>
+                    <span class="badge bg-info">@Model.Brand.BrandName</span>
+                    @if (Model.Collection != null)
+                    {
+                        <span class="badge bg-success ms-1">@Model.Collection.CollectionName</span>
+                    }
+                </div>
+
+                @* Description *@
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="product-description mb-4">
+                        <p class="text-muted">@Model.Description</p>
+                    </div>
+                }
+
+                @* Price *@
+                <div class="price-section mb-4">
+                    <span class="h3 text-primary fw-bold price-display" id="current-price">@Model.BasePrice.ToString("N0") VNĐ</span>
+                </div>
+
+                @* SIZE SELECTION *@
+                @if (ViewBag.AvailableSizes != null && ((List<ClothingStoreWebApp.Models.Size>)ViewBag.AvailableSizes).Any())
+                {
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Kích thước:</h6>
+                        <div class="size-options d-flex flex-wrap gap-2">
+                            @foreach (var size in (List<ClothingStoreWebApp.Models.Size>)ViewBag.AvailableSizes)
+                            {
+                                <button type="button" class="size-btn"
+                                        data-size-id="@size.SizeID"
+                                        data-size-name="@size.SizeName"
+                                        onclick="selectSize(this)">
+                                    @size.SizeName
+                                </button>
+                            }
+                        </div>
+                        <small class="text-muted">* Vui lòng chọn kích thước</small>
+                    </div>
+                }
+
+                @* COLOR SELECTION *@
+                @if (ViewBag.AvailableColors != null && ((List<ClothingStoreWebApp.Models.Color>)ViewBag.AvailableColors).Any())
+                {
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Màu sắc:</h6>
+                        <div class="color-options d-flex flex-wrap gap-2">
+                            @foreach (var color in (List<ClothingStoreWebApp.Models.Color>)ViewBag.AvailableColors)
+                            {
+                                <button type="button" class="color-btn"
+                                        data-color-id="@color.ColorID"
+                                        data-color-name="@color.ColorName"
+                                        onclick="selectColor(this)">
+                                    <span class="color-preview" style="background-color: @color.ColorCode;"></span>
+                                    <span class="color-name">@color.ColorName</span>
+                                </button>
+                            }
+                        </div>
+                        <small class="text-muted">* Vui lòng chọn màu sắc</small>
+                    </div>
+                }
+
+                @* Selection Status *@
+                <div id="selection-status" class="selection-status mb-3">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Vui lòng chọn size và màu sắc</span>
+                </div>
+
+                @* Quantity Selection *@
+                <div class="quantity-section mb-4">
+                    <h6 class="fw-bold mb-3">Số lượng:</h6>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" type="button" data-action="decrease">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" class="quantity-input" id="quantity" value="1" min="1" max="10" readonly>
+                        <button class="quantity-btn" type="button" data-action="increase">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @* Add to Cart Button *@
+                <div class="cart-actions mb-4">
+                    <button type="button" class="btn-add-cart" id="add-to-cart-btn" disabled>
+                        <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ hàng
+                    </button>
+                    <button type="button" class="btn-wishlist">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+
+                @* Material & Care *@
+                @if (!string.IsNullOrEmpty(Model.Material) || !string.IsNullOrEmpty(Model.CareInstructions))
+                {
+                    <div class="product-details-card">
+                        <h6 class="fw-bold mb-3">Thông tin chi tiết</h6>
+                        @if (!string.IsNullOrEmpty(Model.Material))
+                        {
+                            <div class="detail-item">
+                                <i class="fas fa-tshirt text-primary"></i>
+                                <div>
+                                    <strong>Chất liệu:</strong>
+                                    <span class="text-muted">@Model.Material</span>
+                                </div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.CareInstructions))
+                        {
+                            <div class="detail-item">
+                                <i class="fas fa-hand-sparkles text-primary"></i>
+                                <div>
+                                    <strong>Hướng dẫn bảo quản:</strong>
+                                    <span class="text-muted">@Model.CareInstructions</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Related Products Section *@
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">Sản phẩm liên quan</h3>
+            <div class="row" id="related-products">
+                @* Related products will be loaded here *@
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@* Custom CSS *@
+<style>
+    /* Product Gallery */
+    .product-gallery {
+        position: sticky;
+        top: 20px;
+    }
+
+    .main-image-wrapper {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #f8f9fa;
+        padding: 20px;
+    }
+
+    .main-image {
+        width: 100%;
+        max-height: 500px;
+        object-fit: contain;
+        transition: transform 0.5s ease;
+        cursor: zoom-in;
+    }
+
+        .main-image:hover {
+            transform: scale(1.05);
+        }
+
+    .thumbnail-wrapper {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .thumbnail-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border: 3px solid #dee2e6;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .thumbnail-img:hover {
+            border-color: #0d6efd;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        }
+
+        .thumbnail-img.active {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+        }
+
+    /* Product Info */
+    .product-title {
+        color: #212529;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.5em 0.75em;
+        font-weight: 600;
+    }
+
+    .price-display {
+        display: inline-block;
+        transition: transform 0.3s ease;
+    }
+
+        .price-display:hover {
+            transform: scale(1.05);
+        }
+
+    /* Size Selection */
+    .size-btn {
+        padding: 12px 20px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: #fff;
+        color: #495057;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 60px;
+        text-align: center;
+    }
+
+        .size-btn:hover {
+            border-color: #0d6efd;
+            background: #e7f1ff;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+        }
+
+        .size-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+    /* Color Selection */
+    .color-btn {
+        padding: 10px 16px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .color-preview {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #fff;
+        border-radius: 4px;
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .color-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .color-btn:hover {
+        border-color: #0d6efd;
+        background: #e7f1ff;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+    }
+
+        .color-btn:hover .color-preview {
+            transform: scale(1.2);
+        }
+
+    .color-btn.active {
+        border-color: #0d6efd;
+        border-width: 3px;
+        background: #e7f1ff;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+    }
+
+        .color-btn.active .color-name {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+
+    /* Selection Status */
+    .selection-status {
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+        .selection-status i {
+            font-size: 18px;
+        }
+
+        .selection-status.info {
+            background: #e7f1ff;
+            color: #0d6efd;
+        }
+
+        .selection-status.success {
+            background: #d1e7dd;
+            color: #198754;
+        }
+
+        .selection-status.error {
+            background: #f8d7da;
+            color: #dc3545;
+        }
+
+    /* Quantity Controls */
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        width: fit-content;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .quantity-btn {
+        width: 45px;
+        height: 45px;
+        border: none;
+        background: #fff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #495057;
+    }
+
+        .quantity-btn:hover {
+            background: #0d6efd;
+            color: #fff;
+        }
+
+    .quantity-input {
+        width: 60px;
+        height: 45px;
+        border: none;
+        border-left: 1px solid #dee2e6;
+        border-right: 1px solid #dee2e6;
+        text-align: center;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    /* Cart Actions */
+    .cart-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-add-cart {
+        flex: 1;
+        padding: 14px 28px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .btn-add-cart:not(:disabled):hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-add-cart:disabled {
+            background: #dee2e6;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .btn-add-cart.success {
+            background: #198754;
+        }
+
+    .btn-wishlist {
+        width: 50px;
+        height: 50px;
+        border: 2px solid #dee2e6;
+        background: #fff;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #dc3545;
+        font-size: 20px;
+    }
+
+        .btn-wishlist:hover {
+            border-color: #dc3545;
+            background: #dc3545;
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        /* ✅ THÊM ACTIVE STATE */
+        .btn-wishlist.active {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: #fff;
+        }
+
+            .btn-wishlist.active i {
+                animation: heartBeat 0.3s ease;
+            }
+
+    keyframes heartBeat {
+        0%, 100%
+
+    {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3);
+    }
+
+}
+    
+
+
+    /* Product Details Card */
+    .product-details-card {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+    }
+
+    .detail-item {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+        align-items: flex-start;
+    }
+
+        .detail-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-item i {
+            font-size: 20px;
+            margin-top: 2px;
+        }
+
+        .detail-item strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #212529;
+        }
+</style>
+
+@* JavaScript *@
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// Global variables
+var selectedSizeId = null;
+var selectedColorId = null;
+var selectedVariantId = null;
+
+// Select Size Function
+function selectSize(button) {
+    var sizeButtons = document.querySelectorAll('.size-btn');
+    sizeButtons.forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+
+    button.classList.add('active');
+    selectedSizeId = button.getAttribute('data-size-id');
+    checkSelection();
+}
+
+// Select Color Function
+function selectColor(button) {
+    var colorButtons = document.querySelectorAll('.color-btn');
+    colorButtons.forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+
+    button.classList.add('active');
+    selectedColorId = button.getAttribute('data-color-id');
+    checkSelection();
+}
+
+// Change Main Image
+function changeMainImage(thumbnail) {
+    var mainImg = document.getElementById('mainProductImage');
+    mainImg.src = thumbnail.src;
+
+    var thumbnails = document.querySelectorAll('.thumbnail-img');
+    thumbnails.forEach(function(img) {
+        img.classList.remove('active');
+    });
+    thumbnail.classList.add('active');
+}
+
+// Check Selection and Get Variant ID
+function checkSelection() {
+    var addToCartBtn = document.getElementById('add-to-cart-btn');
+    var statusDiv = document.getElementById('selection-status');
+
+    if (selectedSizeId && selectedColorId) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '@Url.Action("GetVariantByOptions", "Product")?productId=@Model.ProductID&sizeId=' + selectedSizeId + '&colorId=' + selectedColorId, true);
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                try {
+                    var result = JSON.parse(xhr.responseText);
+
+                    if (result.success && result.variant) {
+                        selectedVariantId = result.variant.variantId;
+                        addToCartBtn.disabled = false;
+
+                        statusDiv.className = 'selection-status success';
+                        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i><span>Sẵn sàng thêm vào giỏ hàng!</span>';
+
+                        if (result.variant.price) {
+                            document.getElementById('current-price').textContent = result.variant.price.toLocaleString() + ' VNĐ';
+                        }
+                    } else {
+                        selectedVariantId = null;
+                        addToCartBtn.disabled = true;
+                        statusDiv.className = 'selection-status error';
+                        statusDiv.innerHTML = '<i class="fas fa-times-circle"></i><span>Tổ hợp này không có sẵn</span>';
+                    }
+                } catch (e) {
+                    selectedVariantId = null;
+                    addToCartBtn.disabled = true;
+                }
+            }
+        };
+
+        xhr.send();
+    } else {
+        addToCartBtn.disabled = true;
+        selectedVariantId = null;
+
+        var message = 'Vui lòng chọn size và màu sắc';
+        if (selectedSizeId && !selectedColorId) {
+            message = 'Vui lòng chọn màu sắc';
+        } else if (!selectedSizeId && selectedColorId) {
+            message = 'Vui lòng chọn kích thước';
+        }
+
+        statusDiv.className = 'selection-status info';
+        statusDiv.innerHTML = '<i class="fas fa-info-circle"></i><span>' + message + '</span>';
+    }
+}
+
+// Page Ready
+document.addEventListener('DOMContentLoaded', function() {
+    var quantityInput = document.getElementById('quantity');
+
+    // Quantity Controls
+    var quantityButtons = document.querySelectorAll('.quantity-btn');
+    quantityButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var currentVal = parseInt(quantityInput.value) || 1;
+            var action = this.getAttribute('data-action');
+
+            if (action === 'increase' && currentVal < 10) {
+                quantityInput.value = currentVal + 1;
+            } else if (action === 'decrease' && currentVal > 1) {
+                quantityInput.value = currentVal - 1;
+            }
+        });
+    });
+
+    // Add to Cart
+    document.getElementById('add-to-cart-btn').addEventListener('click', function() {
+        if (!selectedVariantId) {
+            showNotification('error', 'Vui lòng chọn size và màu sắc!');
+            return;
+        }
+
+        var quantity = parseInt(document.getElementById('quantity').value) || 1;
+        var button = this;
+        var originalHtml = button.innerHTML;
+
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
+
+        $.ajax({
+            url: '@Url.Action("AddToCart", "Cart")',
+            type: 'POST',
+            data: {
+                variantId: selectedVariantId,
+                quantity: quantity,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            dataType: 'json',
+            success: function(result) {
+                if (result.success) {
+                    button.innerHTML = '<i class="fas fa-check"></i> Đã thêm!';
+                    button.classList.add('success');
+
+                    showNotification('success', result.message || 'Đã thêm vào giỏ hàng!');
+
+                    setTimeout(function() {
+                        button.disabled = false;
+                        button.innerHTML = originalHtml;
+                        button.classList.remove('success');
+                    }, 2000);
+                } else {
+                    button.disabled = false;
+                    button.innerHTML = originalHtml;
+                    showNotification('error', result.message || 'Không thể thêm vào giỏ hàng');
+                }
+            },
+            error: function() {
+                button.disabled = false;
+                button.innerHTML = originalHtml;
+                showNotification('error', 'Có lỗi xảy ra!');
+            }
+        });
+    });
+
+    // Wishlist button
+   // ✅ WISHLIST BUTTON - WORKING VERSION
+document.querySelector('.btn-wishlist').addEventListener('click', function() {
+    var button = this;
+    var productId = @Model.ProductID;
+
+    $.ajax({
+        url: '@Url.Action("Toggle", "Wishlist")',
+        type: 'POST',
+        data: {
+            productId: productId,
+            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+        },
+        success: function(response) {
+            if (response.success) {
+                if (response.inWishlist) {
+                    button.classList.add('active');
+                    showNotification('success', response.message || 'Đã thêm vào danh sách yêu thích!');
+                } else {
+                    button.classList.remove('active');
+                    showNotification('info', response.message || 'Đã xóa khỏi danh sách yêu thích!');
+                }
+
+                // Update wishlist count if exists
+                if (typeof response.wishlistCount !== 'undefined') {
+                    $('.wishlist-count').text(response.wishlistCount);
+                }
+            } else if (response.requireLogin) {
+                showNotification('error', 'Vui lòng đăng nhập để sử dụng tính năng này!');
+                setTimeout(function() {
+                    window.location.href = '@Url.Action("Login", "User")';
+                }, 1500);
+            } else {
+                showNotification('error', response.message || 'Có lỗi xảy ra!');
+            }
+        },
+        error: function() {
+            showNotification('error', 'Không thể kết nối đến server!');
+        }
+    });
+});
+
+});
+
+// Show Notification
+    // Show Notification
+    function showNotification(type, message) {
+        var bgColor = {
+            'success': '#28a745',
+            'error': '#dc3545',
+            'info': '#17a2b8'
+        }[type] || '#6c757d';
+
+        var icon = {
+            'success': 'check',
+            'error': 'times',
+            'info': 'info'
+        }[type] || 'bell';
+
+        var notification = document.createElement('div');
+        notification.className = 'success-notification';
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: ' + bgColor + '; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; display: flex; align-items: center; gap: 10px;';
+        notification.innerHTML = '<i class="fas fa-' + icon + '-circle"></i><span>' + message + '</span>';
+        document.body.appendChild(notification);
+
+        setTimeout(function () {
+            notification.style.transition = 'opacity 0.3s ease';
+            notification.style.opacity = '0';
+            setTimeout(function () {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+
+</script>

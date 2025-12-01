@@ -1,0 +1,133 @@
+﻿@model ClothingStoreWebApp.Models.Brand
+@{
+    ViewBag.Title = "Xóa Vĩnh Viễn Thương Hiệu - " + Model.BrandName;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Xác Nhận Xóa Vĩnh Viễn Thương Hiệu
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-skull-crossbones"></i>
+                        <strong>CẢNH BÁO:</strong> Hành động này sẽ xóa vĩnh viễn thương hiệu khỏi database.
+                        <strong>KHÔNG THỂ KHÔI PHỤC!</strong>
+                    </div>
+
+                    @if (Model.Products != null && Model.Products.Any())
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-ban"></i>
+                            <strong>Không thể xóa!</strong> Thương hiệu này có <strong>@Model.Products.Count sản phẩm</strong>.
+                            Vui lòng xóa hoặc chuyển sản phẩm sang thương hiệu khác trước.
+                        </div>
+                    }
+
+                    <h5 class="mb-3">Thông tin thương hiệu sẽ bị xóa:</h5>
+
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 200px;">ID</th>
+                            <td>@Model.BrandID</td>
+                        </tr>
+                        <tr>
+                            <th>Tên Thương Hiệu</th>
+                            <td><strong class="text-danger">@Model.BrandName</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Logo</th>
+                            <td>
+                                @if (!string.IsNullOrEmpty(Model.LogoURL))
+                                {
+                                    <img src="@Model.LogoURL" alt="@Model.BrandName" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Không có</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Website</th>
+                            <td>
+                                @if (!string.IsNullOrEmpty(Model.Website))
+                                {
+                                    <a href="@Model.Website" target="_blank">@Model.Website</a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Không có</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Số sản phẩm</th>
+                            <td>
+                                @if (Model.Products != null && Model.Products.Any())
+                                {
+                                    <span class="badge bg-danger">@Model.Products.Count sản phẩm</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Không có</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Trạng thái</th>
+                            <td>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Đang hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Đã ẩn</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Mô Tả</th>
+                            <td>@(Model.Description ?? "Không có")</td>
+                        </tr>
+                        <tr>
+                            <th>Ngày Tạo</th>
+                            <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    </table>
+
+                    @using (Html.BeginForm("Delete", "Brand", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.BrandID)
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Hủy Bỏ
+                            </a>
+
+                            @if (Model.Products == null || !Model.Products.Any())
+                            {
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('⚠️ BẠN CÓ CHẮC CHẮN MUỐN XÓA VĨNH VIỄN?\n\nThương hiệu: ' + '@Model.BrandName' + '\n\nHÀNH ĐỘNG NÀY KHÔNG THỂ KHÔI PHỤC!');">
+                                    <i class="fas fa-skull-crossbones"></i> Xác Nhận Xóa Vĩnh Viễn
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-ban"></i> Không Thể Xóa
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

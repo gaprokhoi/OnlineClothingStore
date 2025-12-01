@@ -1,0 +1,75 @@
+﻿@model ClothingStoreWebApp.Models.Brand
+@{
+    ViewBag.Title = "Thêm Thương Hiệu Mới";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle"></i>
+                        Thêm Thương Hiệu Mới
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("Create", "Brand", FormMethod.Post, new { @class = "needs-validation" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.BrandName, "Tên Thương Hiệu", new { @class = "form-label required" })
+                            @Html.TextBoxFor(m => m.BrandName, new { @class = "form-control", placeholder = "Nhập tên thương hiệu", required = "required" })
+                            @Html.ValidationMessageFor(m => m.BrandName, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Description, "Mô Tả", new { @class = "form-label" })
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4, placeholder = "Nhập mô tả về thương hiệu" })
+                            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.LogoURL, "URL Logo", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.LogoURL, new { @class = "form-control", placeholder = "https://example.com/logo.png" })
+                            @Html.ValidationMessageFor(m => m.LogoURL, "", new { @class = "text-danger" })
+                            <small class="text-muted">Nhập đường dẫn URL của logo thương hiệu</small>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Website, "Website", new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.Website, new { @class = "form-control", placeholder = "https://example.com" })
+                            @Html.ValidationMessageFor(m => m.Website, "", new { @class = "text-danger" })
+                            <small class="text-muted">Nhập địa chỉ website chính thức của thương hiệu</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Trạng Thái</label>
+                            <div class="form-check form-switch">
+                                @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input", @checked = "checked" })
+                                @Html.LabelFor(m => m.IsActive, "Kích hoạt", new { @class = "form-check-label" })
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay Lại
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Lưu Thương Hiệu
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

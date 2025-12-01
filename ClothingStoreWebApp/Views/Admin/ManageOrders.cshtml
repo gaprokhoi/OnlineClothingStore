@@ -1,0 +1,402 @@
+﻿@model IEnumerable<ClothingStoreWebApp.Models.Order>
+@using ClothingStoreWebApp.Helpers
+@{
+    ViewBag.Title = "Quản Lý Đơn Hàng";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-shopping-cart text-primary"></i>
+            Quản Lý Đơn Hàng
+        </h1>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small">Chào mừng trở lại!</span>
+            <span class="badge bg-success px-3 py-2">
+                <i class="fas fa-user-shield"></i> @Session["UserName"]
+            </span>
+        </div>
+    </div>
+
+    @* Success/Error Notifications *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Thành công!</strong> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Lỗi!</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @* Statistics Cards *@
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-warning bg-opacity-10">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Chờ Xử Lý</h6>
+                            <h3 class="mb-0 text-warning">@ViewBag.PendingCount</h3>
+                        </div>
+                        <div class="fs-1 text-warning opacity-25">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-info bg-opacity-10">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Đang Xử Lý</h6>
+                            <h3 class="mb-0 text-info">@ViewBag.ProcessingCount</h3>
+                        </div>
+                        <div class="fs-1 text-info opacity-25">
+                            <i class="fas fa-cog fa-spin"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Đang Giao</h6>
+                            <h3 class="mb-0 text-primary">@ViewBag.ShippedCount</h3>
+                        </div>
+                        <div class="fs-1 text-primary opacity-25">
+                            <i class="fas fa-shipping-fast"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-success bg-opacity-10">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Đã Giao</h6>
+                            <h3 class="mb-0 text-success">@ViewBag.DeliveredCount</h3>
+                        </div>
+                        <div class="fs-1 text-success opacity-25">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Filter and Search *@
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" action="@Url.Action("ManageOrders", "Admin")" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Trạng Thái</label>
+                    <select name="status" class="form-select">
+                        <option value="All" @(ViewBag.CurrentStatus == "All" ? "selected" : "")>Tất cả</option>
+                        <option value="Pending" @(ViewBag.CurrentStatus == "Pending" ? "selected" : "")>Chờ xử lý</option>
+                        <option value="Processing" @(ViewBag.CurrentStatus == "Processing" ? "selected" : "")>Đang xử lý</option>
+                        <option value="Shipped" @(ViewBag.CurrentStatus == "Shipped" ? "selected" : "")>Đang giao</option>
+                        <option value="Delivered" @(ViewBag.CurrentStatus == "Delivered" ? "selected" : "")>Đã giao</option>
+                        <option value="Cancelled" @(ViewBag.CurrentStatus == "Cancelled" ? "selected" : "")>Đã hủy</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Tìm Kiếm</label>
+                    <input type="text" name="search" class="form-control" placeholder="Mã đơn hàng hoặc tên khách hàng..." value="@ViewBag.SearchTerm">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* Orders Table *@
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Danh Sách Đơn Hàng</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4">MÃ ĐỐN HÀNG</th>
+                                <th>NGÀY ĐẶT</th>
+                                <th>SẢN PHẨM</th>
+                                <th>TỔNG TIỀN</th>
+                                <th>TRẠNG THÁI</th>
+                                <th>THANH TOÁN</th>
+                                <th class="text-center">THAO TÁC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                var statusClass = "secondary";
+                                var statusText = order.OrderStatus?.StatusName ?? "Unknown";
+                                var statusIcon = "fa-question";
+
+                                switch (statusText)
+                                {
+                                    case "Pending":
+                                        statusClass = "warning";
+                                        statusText = "Chờ xử lý";
+                                        statusIcon = "fa-clock";
+                                        break;
+                                    case "Processing":
+                                        statusClass = "info";
+                                        statusText = "Đang xử lý";
+                                        statusIcon = "fa-cog";
+                                        break;
+                                    case "Shipped":
+                                        statusClass = "primary";
+                                        statusText = "Đang giao";
+                                        statusIcon = "fa-shipping-fast";
+                                        break;
+                                    case "Delivered":
+                                        statusClass = "success";
+                                        statusText = "Đã giao";
+                                        statusIcon = "fa-check-circle";
+                                        break;
+                                    case "Cancelled":
+                                        statusClass = "danger";
+                                        statusText = "Đã hủy";
+                                        statusIcon = "fa-times-circle";
+                                        break;
+                                }
+
+                                var paymentClass = order.PaymentStatus == "Paid" ? "success" : "warning";
+                                var paymentText = order.PaymentStatus == "Paid" ? "Đã thanh toán" : "Chưa thanh toán";
+
+                                <tr>
+                                    <td class="px-4 fw-bold">#@order.OrderNumber</td>
+                                    <td>
+                                        <div>@order.OrderDate.ToString("dd/MM/yyyy")</div>
+                                        <small class="text-muted">@order.OrderDate.ToString("HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var itemCount = order.OrderItems != null ? order.OrderItems.Count() : 0;
+                                        }
+                                        <span class="badge bg-light text-dark">@itemCount sản phẩm</span>
+                                    </td>
+                                    <td class="fw-bold text-danger">@order.TotalAmount.ToString("N0") ₫</td>
+                                    <td>
+                                        <span class="badge bg-@statusClass">
+                                            <i class="fas @statusIcon me-1"></i>@statusText
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@paymentClass">@paymentText</span>
+                                        <br />
+                                        <small class="text-muted">@order.PaymentMethod</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("OrderDetails", "Admin", new { id = order.OrderID })"
+                                               class="btn btn-sm btn-outline-info" title="Xem chi tiết">
+                                                <i class="fas fa-eye"></i> XEM
+                                            </a>
+
+                                            @if (order.OrderStatus.StatusName == "Pending")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-warning"
+                                                        onclick="approveOrder(@order.OrderID)" title="Duyệt đơn">
+                                                    DUYỆT
+                                                </button>
+                                            }
+                                            else if (order.OrderStatus.StatusName == "Processing")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        onclick="shipOrder(@order.OrderID)" title="Giao hàng">
+                                                    GIAO HÀNG
+                                                </button>
+                                            }
+
+                                            else if (order.OrderStatus.StatusName == "Pending Cancellation")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        onclick="approveCancellation(@order.OrderID)"
+                                                        title="Chấp nhận yêu cầu hủy">
+                                                    <i class="fas fa-check"></i> CHẤP NHẬN HỦY
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @* Pagination *@
+                if (ViewBag.TotalPages != null && ViewBag.TotalPages > 1)
+                {
+                    <div class="card-footer bg-white">
+                        <nav>
+                            <ul class="pagination justify-content-center mb-0">
+
+                                @if (ViewBag.CurrentPage > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("ManageOrders", new { status = ViewBag.CurrentStatus, search = ViewBag.SearchTerm, page = ViewBag.CurrentPage - 1 })">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+
+                                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("ManageOrders", new { status = ViewBag.CurrentStatus, search = ViewBag.SearchTerm, page = i })">@i</a>
+                                    </li>
+                                }
+
+                                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("ManageOrders", new { status = ViewBag.CurrentStatus, search = ViewBag.SearchTerm, page = ViewBag.CurrentPage + 1 })">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Không có đơn hàng nào</h5>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function approveOrder(orderId) {
+            if (confirm('Xác nhận duyệt đơn hàng này?')) {
+                $.ajax({
+                    url: '@Url.Action("ApproveOrder", "Admin")',
+                    type: 'POST',
+                    data: {
+                        orderId: orderId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi xử lý yêu cầu');
+                    }
+                });
+            }
+        }
+
+        function shipOrder(orderId) {
+            if (confirm('Xác nhận đã giao đơn hàng cho shipper?')) {
+                $.ajax({
+                    url: '@Url.Action("ShipOrder", "Admin")',
+                    type: 'POST',
+                    data: {
+                        orderId: orderId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi xử lý yêu cầu');
+                    }
+                });
+            }
+        }
+
+
+        function cancelOrder(orderId) {
+            if (confirm('Xác nhận hủy đơn hàng này? Hành động này không thể hoàn tác.')) {
+                $.ajax({
+                    url: '@Url.Action("CancelOrder", "Admin")',
+                    type: 'POST',
+                    data: {
+                        orderId: orderId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi hủy đơn hàng');
+                    }
+                });
+            }
+        }
+
+        function approveCancellation(orderId) {
+    if (confirm('Xác nhận chấp nhận yêu cầu hủy đơn hàng này?')) {
+        $.ajax({
+            url: '@Url.Action("ApproveCancellation", "Admin")',
+            type: 'POST',
+            data: {
+                orderId: orderId,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Có lỗi xảy ra');
+            }
+        });
+    }
+}
+
+    </script>
+
+    @Html.AntiForgeryToken()
+}

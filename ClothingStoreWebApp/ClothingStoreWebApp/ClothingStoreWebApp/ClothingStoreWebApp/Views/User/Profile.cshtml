@@ -1,0 +1,185 @@
+﻿@model ClothingStoreWebApp.ViewModels.UserProfileViewModel
+@{
+    ViewBag.Title = "Hồ sơ của tôi";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <!-- Header Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center py-4">
+                    <div class="avatar-wrapper mb-3">
+                        <div class="avatar-circle">
+                            <i class="fas fa-user fa-3x text-primary"></i>
+                        </div>
+                    </div>
+                    <h2 class="mb-1">@Model.FirstName @Model.LastName</h2>
+                    <p class="text-muted">@Model.Email</p>
+                </div>
+            </div>
+
+            <!-- Success Message -->
+            @if (ViewBag.Message != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>@ViewBag.Message
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <!-- Profile Form -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Thông tin cá nhân
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm("UpdateProfile", "Account", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate" }))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="row">
+                            <!-- Email Field -->
+                            <div class="col-md-12 mb-4">
+                                <label for="Email" class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-2 text-primary"></i>@Html.DisplayNameFor(m => m.Email)
+                                </label>
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control form-control-lg", placeholder = "example@email.com", type = "email" })
+                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small mt-1" })
+                            </div>
+
+                            <!-- First Name Field -->
+                            <div class="col-md-6 mb-4">
+                                <label for="FirstName" class="form-label fw-bold">
+                                    <i class="fas fa-id-card me-2 text-primary"></i>@Html.DisplayNameFor(m => m.FirstName)
+                                </label>
+                                @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control form-control-lg", placeholder = "Nhập tên" })
+                                @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger small mt-1" })
+                            </div>
+
+                            <!-- Last Name Field -->
+                            <div class="col-md-6 mb-4">
+                                <label for="LastName" class="form-label fw-bold">
+                                    <i class="fas fa-id-card me-2 text-primary"></i>@Html.DisplayNameFor(m => m.LastName)
+                                </label>
+                                @Html.TextBoxFor(m => m.LastName, new { @class = "form-control form-control-lg", placeholder = "Nhập họ" })
+                                @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger small mt-1" })
+                            </div>
+
+                            <!-- Phone Number Field -->
+                            <div class="col-md-12 mb-4">
+                                <label for="PhoneNumber" class="form-label fw-bold">
+                                    <i class="fas fa-phone me-2 text-primary"></i>@Html.DisplayNameFor(m => m.PhoneNumber)
+                                </label>
+                                @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control form-control-lg", placeholder = "0123456789", type = "tel" })
+                                @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small mt-1" })
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary btn-lg px-4">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg px-4">
+                                <i class="fas fa-save me-2"></i>Cập nhật thông tin
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Additional Info Card -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <a href="@Url.Action("OrderHistory", "Orders")" class="text-decoration-none">
+                                <i class="fas fa-shopping-bag fa-2x text-primary mb-2"></i>
+                                <h6 class="text-muted">Đơn hàng</h6>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <a href="@Url.Action("ChangePassword", "Account")" class="text-decoration-none">
+                                <i class="fas fa-lock fa-2x text-warning mb-2"></i>
+                                <h6 class="text-muted">Đổi mật khẩu</h6>
+                            </a>
+                        </div>
+                        @*<div class="col-md-4">
+                            <a href="@Url.Action("Addresses", "Account")" class="text-decoration-none">
+                                <i class="fas fa-map-marker-alt fa-2x text-success mb-2"></i>
+                                <h6 class="text-muted">Địa chỉ</h6>
+                            </a>
+                        </div>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom CSS -->
+<style>
+    .avatar-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .avatar-circle {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+        .avatar-circle i {
+            color: white !important;
+        }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        border-bottom: none;
+        padding: 1.5rem;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: transform 0.2s;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+    .btn-outline-secondary:hover {
+        transform: translateY(-2px);
+    }
+
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.075) !important;
+    }
+</style>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+}

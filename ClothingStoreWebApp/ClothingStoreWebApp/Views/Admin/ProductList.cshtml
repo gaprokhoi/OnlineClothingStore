@@ -1,0 +1,525 @@
+﻿@using ClothingStoreWebApp.Helpers
+@using Newtonsoft.Json
+
+@model IEnumerable<ClothingStoreWebApp.Models.Product>
+@{
+    ViewBag.Title = "Admin Dashboard - Quản lý sản phẩm";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-box text-primary"></i>
+            Quản lý sản phẩm
+        </h1>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small">Chào mừng trở lại!</span>
+            <span class="badge bg-success px-3 py-2">
+                <i class="fas fa-user-shield"></i> @Session["UserName"]
+            </span>
+        </div>
+    </div>
+
+    @* Success/Error Notifications *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Thành công!</strong> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Lỗi!</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["InfoMessage"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Thông tin:</strong> @TempData["InfoMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* Bộ lọc và tìm kiếm sản phẩm *@
+    <div class="card bg-dark border-0 mb-4">
+        <div class="card-header bg-primary">
+            <h6 class="card-title text-white mb-0">
+                <i class="fas fa-filter"></i> Bộ lọc và tìm kiếm sản phẩm
+            </h6>
+        </div>
+        <div class="card-body">
+            @using (Html.BeginForm("ProductList", "Admin", FormMethod.Get, new { @class = "filter-form" }))
+            {
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-white">Danh mục gốc</label>
+                        <select name="parentCategoryId" class="form-select" id="parentCategorySelect">
+                            <option value="">Tất cả danh mục gốc</option>
+                            @if (ViewBag.ParentCategories != null)
+                            {
+                                foreach (var category in ViewBag.ParentCategories)
+                                {
+                                    <option value="@category.CategoryID"
+                                            @(Request.QueryString["parentCategoryId"] == category.CategoryID.ToString() ? "selected" : "")>
+                                        @category.CategoryName
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-white">Danh mục con</label>
+                        <select name="categoryId" class="form-select" id="categorySelect">
+                            <option value="">Tất cả danh mục con</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-white">Thương hiệu</label>
+                        <select name="brandId" class="form-select">
+                            <option value="">Tất cả thương hiệu</option>
+                            @if (ViewBag.Brands != null)
+                            {
+                                foreach (var brand in ViewBag.Brands)
+                                {
+                                    <option value="@brand.BrandID"
+                                            @(Request.QueryString["brandId"] == brand.BrandID.ToString() ? "selected" : "")>
+                                        @brand.BrandName
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-10">
+                        <label class="form-label text-white">Tìm kiếm</label>
+                        <input type="text" name="search" class="form-control"
+                               placeholder="Tìm theo tên sản phẩm hoặc mô tả..."
+                               value="@Request.QueryString["search"]" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Results Summary *@
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="mb-0">📦 Danh sách sản phẩm</h5>
+            <small class="text-muted">
+                Hiển thị @Model.Count() sản phẩm
+                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm as string))
+                {
+                    <span> - Kết quả cho: "<strong>@ViewBag.SearchTerm</strong>"</span>
+                }
+            </small>
+        </div>
+        <div class="btn-group btn-group-sm">
+            <a href="@Url.Action("Create", "Product")" class="btn btn-success">
+                <i class="fas fa-plus"></i> Thêm sản phẩm
+            </a>
+            <a href="@Url.Action("Export", "Admin")" class="btn btn-outline-secondary">
+                <i class="fas fa-download"></i> Xuất Excel
+            </a>
+        </div>
+    </div>
+
+    @* Products Table *@
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th width="80">Hình</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Danh mục</th>
+                        <th>Thương hiệu</th>
+                        <th width="120">Giá gốc</th>
+                        <th width="80">Giới tính</th>
+                        <th width="100">Trạng thái</th>
+                        <th width="80">Nổi bật</th>
+                        <th width="120">Ngày tạo</th>
+                        <th width="180" class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @if (item.ProductImages != null && item.ProductImages.Any())
+                                    {
+                                        var primaryImage = item.ProductImages.OrderBy(pi => pi.SortOrder).FirstOrDefault();
+                                        <img src="@primaryImage.ImageURL" alt="@item.ProductName" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 60px; height: 60px;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>@item.ProductName</strong>
+                                        <br />
+                                        <small class="text-muted">@(item.Description?.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description)</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (item.Category != null)
+                                    {
+                                        if (item.Category.ParentCategory != null)
+                                        {
+                                            <span class="text-muted small">@item.Category.ParentCategory.CategoryName > </span><br />
+                                            <strong>@item.Category.CategoryName</strong>
+                                        }
+                                        else
+                                        {
+                                            <strong>@item.Category.CategoryName</strong>
+                                            <br /><span class="badge bg-primary">Gốc</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
+                                    }
+                                </td>
+                                <td>@(item.Brand?.BrandName ?? "N/A")</td>
+                                <td><strong class="text-primary">@item.BasePrice.ToString("N0") ₫</strong></td>
+                                <td>
+                                    @if (item.Gender == "Nam")
+                                    {
+                                        <span class="badge bg-info">Nam</span>
+                                    }
+                                    else if (item.Gender == "Nữ")
+                                    {
+                                        <span class="badge bg-danger">Nữ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Unisex</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Đã tắt</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsFeatured)
+                                    {
+                                        <i class="fas fa-star text-warning" title="Nổi bật"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star text-muted" title="Thường"></i>
+                                    }
+                                </td>
+                                <td><small>@item.CreatedAt.ToString("dd/MM/yyyy")</small></td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="@Url.Action("Details", "Product", new { id = item.ProductID })" class="btn btn-outline-info btn-sm" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        @if (item.IsActive)
+                                        {
+                                            <a href="@Url.Action("Edit", "Product", new { id = item.ProductID })" class="btn btn-outline-warning btn-sm" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+
+                                            using (Html.BeginForm("SoftDelete", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.ProductID)
+                                                <button type="submit" class="btn btn-outline-warning btn-sm" title="Ẩn sản phẩm" onclick="return confirm('Ẩn sản phẩm này khỏi website?')">
+                                                    <i class="fas fa-eye-slash" style="color: green;"></i>
+                                                </button>
+                                            }
+
+                                            using (Html.BeginForm("HardDelete", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.ProductID)
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa vĩnh viễn" onclick="return confirm('⚠️ XÓA VĨNH VIỄN sản phẩm này? KHÔNG THỂ hoàn tác!')">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            using (Html.BeginForm("Restore", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.ProductID)
+                                                <button type="submit" class="btn btn-outline-success btn-sm" title="Khôi phục sản phẩm">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                            }
+
+                                            using (Html.BeginForm("HardDelete", "Product", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("id", item.ProductID)
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa vĩnh viễn" onclick="return confirm('⚠️ XÓA VĨNH VIỄN sản phẩm này?')">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="10" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <div>Không có sản phẩm nào</div>
+                                <a href="@Url.Action("Create", "Product")" class="btn btn-primary mt-2">
+                                    <i class="fas fa-plus"></i> Thêm sản phẩm đầu tiên
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @* Pagination *@
+    @if (ViewBag.TotalPages != null && (int)ViewBag.TotalPages > 1)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div>
+                <small class="text-muted">
+                    Trang @ViewBag.CurrentPage / @ViewBag.TotalPages
+                </small>
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    @if ((int)ViewBag.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page=@((int)ViewBag.CurrentPage - 1)&parentCategoryId=@Request.QueryString["parentCategoryId"]&categoryId=@Request.QueryString["categoryId"]&brandId=@Request.QueryString["brandId"]&search=@Request.QueryString["search"]">
+                                Trước
+                            </a>
+                        </li>
+                    }
+
+                    @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @((int)ViewBag.CurrentPage == i ? "active" : "")">
+                            <a class="page-link"
+                               href="?page=@i&parentCategoryId=@Request.QueryString["parentCategoryId"]&categoryId=@Request.QueryString["categoryId"]&brandId=@Request.QueryString["brandId"]&search=@Request.QueryString["search"]">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    @if ((int)ViewBag.CurrentPage < (int)ViewBag.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page=@((int)ViewBag.CurrentPage + 1)&parentCategoryId=@Request.QueryString["parentCategoryId"]&categoryId=@Request.QueryString["categoryId"]&brandId=@Request.QueryString["brandId"]&search=@Request.QueryString["search"]">
+                                Sau
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+@* Custom CSS *@
+<style>
+    .bg-pink {
+        background-color: #e91e63 !important;
+    }
+</style>
+
+@* Notification Animations *@
+<style>
+    @@keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+</style>
+
+@* Scripts *@
+<script>
+    // Notification Functions
+    function showSuccessNotification(message) {
+        var notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease;';
+        notification.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + message;
+        document.body.appendChild(notification);
+        setTimeout(function() {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(function() { notification.remove(); }, 300);
+        }, 3000);
+    }
+    function showErrorNotification(message) {
+        var notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease;';
+        notification.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + message;
+        document.body.appendChild(notification);
+        setTimeout(function() {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(function() { notification.remove(); }, 300);
+        }, 3000);
+    }
+    function showInfoNotification(message) {
+        var notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #17a2b8; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease;';
+        notification.innerHTML = '<i class="fas fa-info-circle me-2"></i>' + message;
+        document.body.appendChild(notification);
+        setTimeout(function() {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(function() { notification.remove(); }, 300);
+        }, 3000);
+    }
+
+    // Check for TempData messages on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        const parentSelect = document.getElementById('parentCategorySelect');
+        const categorySelect = document.getElementById('categorySelect');
+
+        // ✅ HÀNG MỚI: Hàm để load danh mục con
+        function loadSubCategories(parentId) {
+            categorySelect.innerHTML = '<option value="">Tất cả danh mục con</option>';
+
+            if (parentId) {
+                fetch('/Admin/GetSubCategories?parentId=' + parentId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            data.forEach(cat => {
+                                const option = document.createElement('option');
+                                option.value = cat.CategoryID;
+                                option.textContent = cat.CategoryName;
+                                categorySelect.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // ✅ THÊM: Load sub-categories khi page load nếu parent được chọn
+        if (parentSelect.value) {
+            loadSubCategories(parentSelect.value);
+        }
+
+        // ✅ Load khi user thay đổi parent
+        parentSelect.addEventListener('change', function () {
+            loadSubCategories(this.value);
+        });
+    });
+
+    // AJAX for subcategory loading
+
+    $(document).ready(function() {
+        var selectedParentId = '@Request.QueryString["parentCategoryId"]';
+        var selectedCategoryId = '@Request.QueryString["categoryId"]';
+
+        function loadSubCategories(parentId) {
+            var categorySelect = $('#categorySelect');
+            categorySelect.empty();
+            categorySelect.append('<option value="">Tất cả danh mục con</option>');
+
+            if (parentId && parentId !== '') {
+                // AJAX CALL - Lấy danh mục con từ server
+                $.ajax({
+                    url: '@Url.Action("GetSubCategories", "Admin")',
+                    type: 'GET',
+                    data: { parentId: parentId },
+                    dataType: 'json',
+                    success: function(subCategories) {
+                        console.log('Received sub-categories:', subCategories);
+
+                        if (subCategories.length > 0) {
+                            $.each(subCategories, function(index, category) {
+                                var selected = category.CategoryID == selectedCategoryId ? 'selected' : '';
+                                categorySelect.append(
+                                    '<option value="' + category.CategoryID + '" ' + selected + '>' +
+                                    category.CategoryName + '</option>'
+                                );
+                            });
+                        } else {
+                            categorySelect.append('<option value="">Không có danh mục con</option>');
+                        }
+                        categorySelect.prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        categorySelect.append('<option value="">Lỗi tải danh mục</option>');
+                    }
+                });
+            } else {
+                categorySelect.prop('disabled', true);
+            }
+        }
+
+        // Load on page load
+        if (selectedParentId && selectedParentId !== '') {
+            loadSubCategories(selectedParentId);
+        } else {
+            $('#categorySelect').prop('disabled', true);
+        }
+
+        // Load on change
+        $('#parentCategorySelect').change(function() {
+            var parentId = $(this).val();
+            loadSubCategories(parentId);
+        });
+    });
+
+
+</script>

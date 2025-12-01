@@ -1,0 +1,418 @@
+﻿@model IEnumerable<ClothingStoreWebApp.Models.Inventory>
+
+@{
+    ViewBag.Title = "Quản Lý Kho Hàng";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 mb-0">
+            <i class="fas fa-warehouse text-primary"></i>
+            Quản Lý Kho Hàng
+        </h2>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("Index", "Admin")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filter & Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="@Url.Action("ManageInventory")" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text"
+                               name="search"
+                               class="form-control"
+                               placeholder="Tìm theo tên sản phẩm hoặc SKU..."
+                               value="@ViewBag.Search">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch pt-2">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="lowStockOnly"
+                               id="lowStockFilter"
+                               value="true"
+                               @(ViewBag.LowStockOnly == true ? "checked" : "")>
+                        <label class="form-check-label" for="lowStockFilter">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            Chỉ hiện tồn kho thấp
+                            @if (ViewBag.LowStockCount > 0)
+                            {
+                                <span class="badge bg-warning text-dark ms-1">@ViewBag.LowStockCount</span>
+                            }
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Tổng Variants</h6>
+                    <h3 class="mb-0">@ViewBag.TotalItems</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Tồn Kho Thấp</h6>
+                    <h3 class="mb-0 text-warning">@ViewBag.LowStockCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Trang Hiện Tại</h6>
+                    <h3 class="mb-0 text-info">@ViewBag.CurrentPage / @ViewBag.TotalPages</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Danh Sách Tồn Kho</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="inventoryTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 15%;">SKU</th>
+                                <th style="width: 25%;">Sản Phẩm</th>
+                                <th style="width: 10%;">Màu</th>
+                                <th style="width: 8%;">Size</th>
+                                <th style="width: 10%;" class="text-center">Số Lượng</th>
+                                <th style="width: 12%;" class="text-center">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                int available = item.QuantityOnHand - item.QuantityReserved;
+                                string stockClass = available < 10 ? "danger" : (available < 20 ? "warning" : "success");
+
+                                <tr data-inventory-id="@item.InventoryID">
+                                    <td>
+                                        <small class="text-muted">@item.ProductVariant.SKU</small>
+                                    </td>
+                                    <td>
+                                        <strong>@item.ProductVariant.Product.ProductName</strong>
+                                        <br>
+                                        <small class="text-muted">@item.ProductVariant.Product.Brand.BrandName</small>
+                                    </td>
+                                    <td>@item.ProductVariant.Color.ColorName</td>
+                                    <td>@item.ProductVariant.Size.SizeName</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-@stockClass fs-5 px-3 py-2"
+                                              id="available-@item.InventoryID"
+                                              data-qty="@item.QuantityOnHand"
+                                              data-reserved="@item.QuantityReserved">
+                                            @available
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button"
+                                                    class="btn btn-outline-primary btn-edit-qty"
+                                                    data-inventory-id="@item.InventoryID"
+                                                    data-current-qty="@item.QuantityOnHand"
+                                                    data-reserved="@item.QuantityReserved"
+                                                    title="Cập nhật số lượng">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-outline-success btn-adjust-qty"
+                                                    data-inventory-id="@item.InventoryID"
+                                                    data-action="add"
+                                                    title="Thêm hàng">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-outline-danger btn-adjust-qty"
+                                                    data-inventory-id="@item.InventoryID"
+                                                    data-action="remove"
+                                                    title="Trừ hàng">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                if (ViewBag.TotalPages > 1)
+                {
+                    <div class="card-footer">
+                        <nav>
+                            <ul class="pagination justify-content-center mb-0">
+                                @if (ViewBag.CurrentPage > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("ManageInventory", new { search = ViewBag.Search, lowStockOnly = ViewBag.LowStockOnly, page = ViewBag.CurrentPage - 1 })">
+                                            Trước
+                                        </a>
+                                    </li>
+                                }
+
+                                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("ManageInventory", new { search = ViewBag.Search, lowStockOnly = ViewBag.LowStockOnly, page = i })">
+                                            @i
+                                        </a>
+                                    </li>
+                                }
+
+                                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("ManageInventory", new { search = ViewBag.Search, lowStockOnly = ViewBag.LowStockOnly, page = ViewBag.CurrentPage + 1 })">
+                                            Sau
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Không tìm thấy kết quả phù hợp</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Update Stock -->
+<div class="modal fade" id="updateStockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cập Nhật Số Lượng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStockForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="update-inventory-id">
+                    <div class="mb-3">
+                        <div class="alert alert-info">
+                            <p class="mb-1">📦 <strong>Tồn kho hiện tại:</strong> <span id="current-qty-display" class="text-primary"></span></p>
+                            <p class="mb-1">🔒 <strong>Đã đặt (reserved):</strong> <span id="reserved-qty-display" class="text-warning"></span></p>
+                            <p class="mb-0">✅ <strong>Khả dụng:</strong> <span id="available-qty-display" class="text-success"></span></p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="new-quantity" class="form-label">Số lượng mới</label>
+                        <input type="number" class="form-control" id="new-quantity" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btn-confirm-update">Cập Nhật</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Adjust Stock -->
+<div class="modal fade" id="adjustStockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="adjustModalTitle">Điều Chỉnh Kho</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="adjustStockForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="adjust-inventory-id">
+                    <input type="hidden" id="adjust-action">
+                    <div class="mb-3">
+                        <label for="adjust-quantity" class="form-label">Số lượng</label>
+                        <input type="number" class="form-control" id="adjust-quantity" min="1" value="10" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="adjust-reason" class="form-label">Lý do (tùy chọn)</label>
+                        <input type="text" class="form-control" id="adjust-reason" placeholder="VD: Nhập hàng mới, hàng hỏng...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btn-confirm-adjust">Xác Nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+$(document).ready(function() {
+    // Update Stock Modal
+    $('.btn-edit-qty').click(function() {
+        var inventoryId = $(this).data('inventory-id');
+        var currentQty = $(this).data('current-qty');
+        var reserved = $(this).data('reserved');
+        var available = currentQty - reserved;
+
+        $('#update-inventory-id').val(inventoryId);
+        $('#current-qty-display').text(currentQty);
+        $('#reserved-qty-display').text(reserved);
+        $('#available-qty-display').text(available);
+        $('#new-quantity').val(currentQty).attr('min', reserved);
+
+        $('#updateStockModal').modal('show');
+    });
+
+    $('#btn-confirm-update').click(function() {
+        var inventoryId = $('#update-inventory-id').val();
+        var newQty = $('#new-quantity').val();
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+            url: '@Url.Action("UpdateStock", "Admin")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: token,
+                inventoryId: inventoryId,
+                newQuantity: newQty
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update badge
+                    var badge = $('#available-' + inventoryId);
+                    badge.text(response.available)
+                        .attr('data-qty', response.newQuantity)
+                        .attr('data-reserved', response.reserved)
+                        .removeClass('bg-danger bg-warning bg-success')
+                        .addClass(response.available < 10 ? 'bg-danger' : (response.available < 20 ? 'bg-warning' : 'bg-success'));
+
+                    // Update button data
+                    $('button[data-inventory-id="' + inventoryId + '"].btn-edit-qty')
+                        .attr('data-current-qty', response.newQuantity)
+                        .attr('data-reserved', response.reserved);
+
+                    $('#updateStockModal').modal('hide');
+                    alert(response.message);
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('Có lỗi xảy ra!');
+            }
+        });
+    });
+
+    // Adjust Stock Modal
+    $('.btn-adjust-qty').click(function() {
+        var inventoryId = $(this).data('inventory-id');
+        var action = $(this).data('action');
+
+        $('#adjust-inventory-id').val(inventoryId);
+        $('#adjust-action').val(action);
+        $('#adjustModalTitle').text(action === 'add' ? 'Thêm Hàng Vào Kho' : 'Trừ Hàng Khỏi Kho');
+        $('#btn-confirm-adjust').removeClass().addClass('btn').addClass(action === 'add' ? 'btn-success' : 'btn-danger');
+
+        $('#adjustStockModal').modal('show');
+    });
+
+    $('#btn-confirm-adjust').click(function() {
+        var inventoryId = $('#adjust-inventory-id').val();
+        var action = $('#adjust-action').val();
+        var quantity = $('#adjust-quantity').val();
+        var reason = $('#adjust-reason').val();
+        var adjustment = action === 'add' ? quantity : -quantity;
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+            url: '@Url.Action("AdjustStock", "Admin")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: token,
+                inventoryId: inventoryId,
+                adjustment: adjustment,
+                reason: reason
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update badge
+                    var badge = $('#available-' + inventoryId);
+                    badge.text(response.available)
+                        .attr('data-qty', response.newQuantity)
+                        .attr('data-reserved', response.reserved)
+                        .removeClass('bg-danger bg-warning bg-success')
+                        .addClass(response.available < 10 ? 'bg-danger' : (response.available < 20 ? 'bg-warning' : 'bg-success'));
+
+                    // Update button data
+                    $('button[data-inventory-id="' + inventoryId + '"].btn-edit-qty')
+                        .attr('data-current-qty', response.newQuantity)
+                        .attr('data-reserved', response.reserved);
+
+                    $('#adjustStockModal').modal('hide');
+                    alert(response.message);
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('Có lỗi xảy ra!');
+            }
+        });
+    });
+});
+    </script>
+}
+

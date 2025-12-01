@@ -1,0 +1,194 @@
+﻿@model List<ClothingStoreWebApp.Models.Wishlist>
+@{
+    ViewBag.Title = "Danh Sách Yêu Thích";
+}
+
+<div class="container mt-5 mb-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">
+                <i class="fas fa-heart text-danger me-2"></i>
+                Danh Sách Yêu Thích
+            </h2>
+            <p class="text-muted">Bạn có @Model.Count sản phẩm yêu thích</p>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <i class="fas fa-heart-broken fa-5x text-muted mb-4"></i>
+            <h3>Danh sách yêu thích trống</h3>
+            <p class="text-muted mb-4">Hãy thêm sản phẩm yêu thích của bạn!</p>
+            <a href="@Url.Action("Index", "Product")" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-bag me-2"></i>
+                Khám phá sản phẩm
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Wishlist Grid -->
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                var product = item.Product;
+                var firstImage = product.ProductImages.FirstOrDefault();
+                var imageUrl = firstImage != null ? firstImage.ImageURL : "/Content/images/no-image.png";
+
+                <div class="col-md-6 col-lg-3" id="wishlist-item-@product.ProductID">
+                    <div class="card h-100 shadow-sm product-card">
+                        <!-- Product Image -->
+                        <div class="position-relative">
+                            <a href="@Url.Action("Details", "Product", new { id = product.ProductID })">
+                                <img src="@imageUrl" class="card-img-top" alt="@product.ProductName" style="height: 300px; object-fit: cover;">
+                            </a>
+
+                            <!-- Remove Button -->
+                            <button class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2"
+                                    onclick="removeFromWishlist(@product.ProductID)"
+                                    title="Xóa khỏi yêu thích">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <!-- Product Info -->
+                        <div class="card-body">
+                            <h6 class="card-title text-truncate">
+                                <a href="@Url.Action("Details", "Product", new { id = product.ProductID })"
+                                   class="text-decoration-none text-dark">
+                                    @product.ProductName
+                                </a>
+                            </h6>
+
+                            <p class="text-muted small mb-2">
+                                @(product.Brand != null ? product.Brand.BrandName : "")
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-danger fw-bold">
+                                    @product.BasePrice.ToString("N0") đ
+                                </span>
+
+                                <a href="@Url.Action("Details", "Product", new { id = product.ProductID })"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Xem chi tiết
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer -->
+                        <div class="card-footer bg-white border-0">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                Thêm lúc: @item.AddedAt.ToString("dd/MM/yyyy")
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- CSS -->
+<style>
+    .product-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        }
+
+    .card-img-top {
+        transition: opacity 0.3s;
+    }
+
+    .card:hover .card-img-top {
+        opacity: 0.9;
+    }
+</style>
+
+<!-- JavaScript -->
+<script>
+    function removeFromWishlist(productId) {
+        if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi danh sách yêu thích?')) {
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("Remove", "Wishlist")',
+            type: 'POST',
+            data: {
+                productId: productId,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Remove card with animation
+                    $('#wishlist-item-' + productId).fadeOut(300, function() {
+                        $(this).remove();
+
+                        // Reload if no items left
+                        if ($('.product-card').length === 0) {
+                            location.reload();
+                        }
+                    });
+
+                    // Update wishlist count in header
+                    $('.wishlist-count').text(response.wishlistCount);
+
+                    // Show toast
+                    showToast('success', response.message);
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function () {
+                showToast('error', 'Có lỗi xảy ra!');
+            }
+        });
+    }
+
+    function showToast(type, message) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+
+        const toast = `
+            <div class="alert ${alertClass} alert-dismissible fade show position-fixed"
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                <i class="fas fa-${icon} me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+
+        $('body').append(toast);
+
+        setTimeout(function() {
+            $('.alert').fadeOut(300, function() { $(this).remove(); });
+        }, 3000);
+    }
+</script>
+
+@Html.AntiForgeryToken()

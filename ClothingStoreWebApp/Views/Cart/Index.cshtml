@@ -1,0 +1,979 @@
+﻿@model IEnumerable<ClothingStoreWebApp.Models.ShoppingCart>
+@{
+    ViewBag.Title = "Giỏ Hàng";
+}
+
+<style>
+    .cart-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 60px 20px;
+        font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 50px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid #d4af37;
+    }
+
+        .cart-header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+    .cart-badge {
+        display: inline-block;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: #d4af37;
+        border: 2px solid #d4af37;
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+
+    .alert-lv-success {
+        padding: 20px 25px;
+        margin-bottom: 30px;
+        background: #f0f8f0;
+        border-left: 4px solid #d4af37;
+        color: #1a1a1a;
+        font-size: 0.9rem;
+        letter-spacing: 0.3px;
+        position: relative;
+    }
+
+    .alert-lv-danger {
+        padding: 20px 25px;
+        margin-bottom: 30px;
+        background: #fff5f5;
+        border-left: 4px solid #dc3545;
+        color: #721c24;
+        font-size: 0.9rem;
+        letter-spacing: 0.3px;
+    }
+
+        .alert-lv-success .btn-close,
+        .alert-lv-danger .btn-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+            .alert-lv-success .btn-close:hover,
+            .alert-lv-danger .btn-close:hover {
+                opacity: 1;
+            }
+
+    .empty-cart {
+        text-align: center;
+        padding: 100px 40px;
+        background: #fafafa;
+        border: 1px solid #e5e5e5;
+    }
+
+        .empty-cart i {
+            font-size: 5rem;
+            color: #d4d4d4;
+            margin-bottom: 30px;
+        }
+
+        .empty-cart h3 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #666;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .empty-cart p {
+            color: #999;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            margin-bottom: 40px;
+        }
+
+    .lv-card {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+
+    .cart-item {
+        padding: 30px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+        .cart-item:hover {
+            background: #fafafa;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+    .product-image {
+        width: 100%;
+        height: auto;
+        border: 1px solid #e5e5e5;
+        transition: all 0.3s ease;
+    }
+
+        .product-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+    .product-placeholder {
+        width: 100%;
+        height: 150px;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e5e5;
+    }
+
+        .product-placeholder i {
+            font-size: 3rem;
+            color: #d4d4d4;
+        }
+
+    .product-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+        .product-title:hover {
+            color: #d4af37;
+            text-decoration: none;
+        }
+
+    .product-brand {
+        color: #999;
+        font-size: 0.85rem;
+        letter-spacing: 0.3px;
+        margin-bottom: 10px;
+    }
+
+    .variant-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        background: #f5f5f5;
+        border: 1px solid #e5e5e5;
+        color: #666;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        margin-right: 8px;
+        text-transform: uppercase;
+    }
+
+    .cart-variant-select {
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #f5f5f5;
+        background-clip: padding-box;
+        border: 1px solid #e5e5e5;
+        border-radius: 0;
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        margin-bottom: 8px;
+        cursor: pointer;
+    }
+
+        .cart-variant-select:focus {
+            border-color: #d4af37;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+        }
+
+    .product-sku {
+        color: #999;
+        font-size: 0.8rem;
+        letter-spacing: 0.3px;
+        margin-top: 10px;
+    }
+
+    .price-label {
+        color: #999;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .unit-price {
+        color: #1a1a1a;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-bottom: 15px;
+    }
+
+    .qty-control {
+        display: flex;
+        align-items: center;
+        max-width: 130px;
+        border: 1px solid #d4d4d4;
+    }
+
+    .qty-btn {
+        width: 40px;
+        height: 40px;
+        background: transparent;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+    }
+
+        .qty-btn:hover {
+            background: #1a1a1a;
+            color: #d4af37;
+        }
+
+    .qty-input {
+        width: 50px;
+        height: 40px;
+        border: none;
+        border-left: 1px solid #d4d4d4;
+        border-right: 1px solid #d4d4d4;
+        text-align: center;
+        font-weight: 600;
+        color: #1a1a1a;
+        background: transparent;
+        /* Disable text selection */
+        -webkit-user-select: none; /* Safari */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+/Edge */
+        user-select: none; /* Standard */
+    }
+        /* Hide spinner arrows on number input for browsers that support it */
+        .qty-input::-webkit-outer-spin-button,
+        .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .qty-input[type=number] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+
+
+    .item-total {
+        color: #1a1a1a;
+        font-size: 1.2rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-bottom: 15px;
+    }
+
+    .btn-lv-remove {
+        padding: 10px 20px;
+        background: transparent;
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-lv-remove:hover {
+            background: #dc3545;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+    .cart-actions {
+        padding: 25px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-lv-secondary {
+        padding: 15px 30px;
+        background: transparent;
+        color: #666;
+        border: 1px solid #d4d4d4;
+        font-size: 0.85rem;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-lv-secondary:hover {
+            background: #f5f5f5;
+            color: #1a1a1a;
+            border-color: #999;
+            text-decoration: none;
+        }
+
+    .btn-lv-danger {
+        padding: 15px 30px;
+        background: transparent;
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        font-size: 0.85rem;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-lv-danger:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+
+    .summary-card {
+        position: sticky;
+        top: 20px;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .summary-header {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: #d4af37;
+        padding: 25px 30px;
+        border: none;
+    }
+
+        .summary-header h5 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+    .summary-body {
+        padding: 35px 30px;
+    }
+
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        font-size: 0.95rem;
+        color: #666;
+    }
+
+        .summary-line span:last-child {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+    .summary-divider {
+        border-top: 1px solid #e5e5e5;
+        margin: 20px 0;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 25px 0;
+        margin-top: 20px;
+        border-top: 2px solid #d4af37;
+    }
+
+        .summary-total h5 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+    .total-amount {
+        color: #1a1a1a;
+        font-weight: 600;
+    }
+
+    .btn-lv-primary {
+        width: 100%;
+        padding: 18px 30px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: #d4af37;
+        border: 2px solid #d4af37;
+        font-size: 1rem;
+        font-weight: 500;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+        .btn-lv-primary:hover {
+            background: #d4af37;
+            color: #1a1a1a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+            text-decoration: none;
+        }
+
+    .btn-lv-outline {
+        width: 100%;
+        padding: 15px 30px;
+        background: transparent;
+        color: #666;
+        border: 1px solid #d4d4d4;
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+    }
+
+        .btn-lv-outline:hover {
+            background: #f5f5f5;
+            color: #1a1a1a;
+            border-color: #999;
+            text-decoration: none;
+        }
+
+    .trust-badges {
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 1px solid #e5e5e5;
+    }
+
+    .trust-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 0;
+        color: #666;
+        font-size: 0.85rem;
+        letter-spacing: 0.3px;
+    }
+
+        .trust-item i {
+            color: #d4af37;
+            margin-right: 12px;
+            font-size: 1rem;
+        }
+
+
+
+    .cart-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .cart-item {
+        padding: 20px 15px;
+    }
+
+    .cart-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .btn-lv-secondary,
+    .btn-lv-danger {
+        width: 100%;
+    }
+</style>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1><i class="fas fa-shopping-cart"></i> Giỏ Hàng Của Bạn</h1>
+        @if (Model != null && Model.Any())
+        {
+            <span class="cart-badge">@Model.Sum(m => m.Quantity) sản phẩm</span>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert-lv-success">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" onclick="this.parentElement.style.display='none';">×</button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert-lv-danger">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" onclick="this.parentElement.style.display='none';">×</button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="empty-cart lv-card">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>Giỏ Hàng Trống</h3>
+            <p>Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy bắt đầu mua sắm!</p>
+            <a href="@Url.Action("Index", "Product")" class="btn-lv-primary" style="max-width: 300px; margin: 0 auto;">
+                <i class="fas fa-shopping-bag"></i> Khám Phá Sản Phẩm
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="lv-card">
+                    @foreach (var item in Model)
+                    {
+                        <div class="cart-item" data-cart-id="@item.CartID">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    @if (item.ProductVariant?.Product?.ProductImages != null && item.ProductVariant.Product.ProductImages.Any())
+                                    {
+                                        <img src="@item.ProductVariant.Product.ProductImages.OrderBy(pi => pi.SortOrder).FirstOrDefault()?.ImageURL" @* Added OrderBy *@
+                                             alt="@item.ProductVariant.Product.ProductName"
+                                             class="product-image" />
+                                    }
+                                    else
+                                    {
+                                        <div class="product-placeholder">
+                                            <i class="fas fa-image"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-md-10">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <a href="@Url.Action("Details", "Product", new { id = item.ProductVariant?.Product?.ProductID })" class="product-title">
+                                                @* Added null checks *@
+                                                @(item.ProductVariant?.Product?.ProductName ?? "Sản phẩm không xác định") @* Added null checks *@
+                                            </a>
+                                            <div class="product-brand">
+                                                @(item.ProductVariant?.Product?.Brand?.BrandName ?? "") @* Added null checks *@
+                                            </div>
+
+                                            @* --- CORRECTED VARIANT SELECTION LOGIC --- *@
+                                            @{
+                                                // Get all REAL variants for this product (ensure ProductVariants is loaded in Controller's Index action)
+                                                var allVariants = item.ProductVariant?.Product?.ProductVariants ?? new List<ClothingStoreWebApp.Models.ProductVariant>();
+
+                                                // Get unique available colors using GroupBy
+                                                var availableColors = allVariants
+                                                    .Where(v => v.Color != null && v.IsActive) // Added IsActive check for variant
+                                                    .Select(v => v.Color)
+                                                    .GroupBy(c => c.ColorID)
+                                                    .Select(g => g.First())
+                                                    .OrderBy(c => c.ColorName);
+
+                                                // Get unique available sizes using GroupBy
+                                                var availableSizes = allVariants
+                                                    .Where(v => v.Size != null && v.IsActive) // Added IsActive check for variant
+                                                    .Select(v => v.Size)
+                                                    .GroupBy(s => s.SizeID)
+                                                    .Select(g => g.First())
+                                                    .OrderBy(s => s.SizeOrder); // Assuming SizeOrder exists for sorting
+                                            }
+                                            <div class="variant-selectors" data-cart-id="@item.CartID">
+                                                <select class="cart-variant-select" data-type="color" @(availableColors.Count() <= 1 ? "disabled" : "")>
+                                                    @* Disable if only one option *@
+                                                    @if (!availableColors.Any() && item.ProductVariant?.Color != null)
+                                                    {
+                                                        <option value="@item.ProductVariant.ColorID" selected>@item.ProductVariant.Color.ColorName</option>
+                                                        @* Show current if none available *@
+                                                    }
+                                                    else
+                                                    {
+                                                        foreach (var color in availableColors)
+                                                        {
+                                                            <option value="@color.ColorID" @(item.ProductVariant != null && color.ColorID == item.ProductVariant.ColorID ? "selected" : "")>
+                                                                @color.ColorName
+                                                            </option>
+                                                        }
+                                                    }
+                                                </select>
+                                                <select class="cart-variant-select" data-type="size" @(availableSizes.Count() <= 1 ? "disabled" : "")>
+                                                    @* Disable if only one option *@
+                                                    @if (!availableSizes.Any() && item.ProductVariant?.Size != null)
+                                                    {
+                                                        <option value="@item.ProductVariant.SizeID" selected>@item.ProductVariant.Size.SizeName</option>
+                                                        @* Show current if none available *@
+                                                    }
+                                                    else
+                                                    {
+                                                        foreach (var size in availableSizes)
+                                                        {
+                                                            <option value="@size.SizeID" @(item.ProductVariant != null && size.SizeID == item.ProductVariant.SizeID ? "selected" : "")>
+                                                                @size.SizeName
+                                                            </option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                            @* --- END OF CORRECTION --- *@
+
+                                            <div class="product-sku">SKU: @(item.ProductVariant?.SKU ?? "N/A")</div> @* Added null check *@
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="price-label">Đơn giá</div>
+                                            <div class="unit-price" data-price="@(item.ProductVariant?.Price ?? 0)">
+                                                @* Added null check *@
+                                                @((item.ProductVariant?.Price ?? 0).ToString("N0")) ₫
+                                            </div>
+
+                                            <div class="qty-control">
+                                                <button class="qty-btn btn-decrease-qty" type="button" data-cart-id="@item.CartID">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <input type="text" class="qty-input" value="@item.Quantity" data-cart-id="@item.CartID" readonly />
+                                                <button class="qty-btn btn-increase-qty" type="button" data-cart-id="@item.CartID">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 text-end">
+                                            <div class="price-label">Thành tiền</div>
+                                            <div class="item-total" data-cart-id="@item.CartID">
+                                                @((item.Quantity * (item.ProductVariant?.Price ?? 0)).ToString("N0")) ₫ @* Added null check *@
+                                            </div>
+                                            <button type="button" class="btn-lv-remove btn-remove-item" data-cart-id="@item.CartID">
+                                                <i class="fas fa-trash"></i> Xóa
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="lv-card">
+                    <div class="cart-actions">
+                        <a href="@Url.Action("Index", "Product")" class="btn-lv-secondary">
+                            <i class="fas fa-arrow-left"></i> Tiếp Tục Mua Sắm
+                        </a>
+                        @if (Model != null && Model.Any()) // Only show clear button if cart is not empty
+                        {
+                            using (Html.BeginForm("ClearCart", "Cart", FormMethod.Post, new { @class = "d-inline" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-lv-danger" onclick="return confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')">
+                                    <i class="fas fa-trash-alt"></i> Xóa Toàn Bộ
+                                </button>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <h5><i class="fas fa-receipt"></i> Tóm Tắt Đơn Hàng</h5>
+                    </div>
+                    <div class="summary-body">
+                        <div class="summary-line">
+                            <span>Tạm tính (<span id="item-count">@(Model?.Sum(m => m.Quantity) ?? 0)</span> sản phẩm)</span> @* Added null check *@
+                            <span id="subtotal">@((ViewBag.SubTotal ?? 0).ToString("N0")) ₫</span> @* Added null check *@
+                        </div>
+                        <div class="summary-line">
+                            <span>Phí vận chuyển</span>
+                            <span style="color: #999; font-weight: 400; font-size: 0.85rem;">Tính ở bước tiếp theo</span>
+                        </div>
+
+                        <div class="summary-divider"></div>
+
+                        <div class="summary-total">
+                            <h5>Tổng cộng</h5>
+                            <h5 class="total-amount" id="total">@((ViewBag.SubTotal ?? 0).ToString("N0")) ₫</h5> @* Added null check *@
+                        </div>
+
+                        @if (Model != null && Model.Any()) // Only show checkout if cart is not empty
+                        {
+                            <a href="@Url.Action("Checkout", "Order")" class="btn-lv-primary">
+                                <i class="fas fa-shopping-bag"></i> Tiến Hành Thanh Toán
+                            </a>
+                        }
+                        <a href="@Url.Action("Index", "Product")" class="btn-lv-outline">
+                            <i class="fas fa-shopping-cart"></i> Tiếp Tục Mua Sắm
+                        </a>
+
+                        <div class="trust-badges">
+                            <div class="trust-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Thanh toán an toàn</span>
+                            </div>
+                            <div class="trust-item">
+                                <i class="fas fa-truck"></i>
+                                <span>Giao hàng toàn quốc</span>
+                            </div>
+                            <div class="trust-item">
+                                <i class="fas fa-undo"></i>
+                                <span>Đổi trả miễn phí trong 7 ngày</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@Html.AntiForgeryToken()
+
+@* Include Bootstrap JS Bundle if not already included in Layout *@
+@* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> *@
+
+@section Scripts {
+    @* Include jQuery if not already included in Layout *@
+    @* <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> *@
+    <script>
+        $(document).ready(function () {
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            // Increase quantity
+            $('.btn-increase-qty').click(function () {
+                var cartId = $(this).data('cart-id');
+                var currentQty = parseInt($('.qty-input[data-cart-id="' + cartId + '"]').val());
+                updateQuantity(cartId, currentQty + 1);
+            });
+
+            // Decrease quantity (With Remove Confirmation)
+            $('.btn-decrease-qty').click(function() {
+                var cartId = $(this).data('cart-id');
+                var qtyInput = $('.qty-input[data-cart-id="' + cartId + '"]');
+                var currentQty = parseInt(qtyInput.val());
+
+                if (currentQty === 1) {
+                    if (confirm('Bạn có muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                        removeItem(cartId);
+                    }
+                } else if (currentQty > 1) {
+                    updateQuantity(cartId, currentQty - 1);
+                }
+            });
+
+            // Remove item Button
+            $('.btn-remove-item').click(function () {
+                if (confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                    var cartId = $(this).data('cart-id');
+                    removeItem(cartId);
+                }
+            });
+
+            // Update Variant (Color/Size) Dropdown Change
+            $('.cart-variant-select').change(function() {
+                var container = $(this).closest('.variant-selectors');
+                var cartId = container.data('cart-id');
+                // Ensure values are parsed as integers
+                var newColorId = parseInt(container.find('select[data-type="color"]').val());
+                var newSizeId = parseInt(container.find('select[data-type="size"]').val());
+
+                // Validate that IDs are numbers before sending
+                if (!isNaN(cartId) && !isNaN(newColorId) && !isNaN(newSizeId)) {
+                    updateVariant(cartId, newColorId, newSizeId);
+                } else {
+                    console.error("Invalid IDs selected:", cartId, newColorId, newSizeId);
+                    alert("Lựa chọn không hợp lệ, vui lòng thử lại.");
+                    location.reload(); // Reload to reset dropdowns
+                }
+            });
+
+            function updateVariant(cartId, newColorId, newSizeId) {
+                var itemRow = $('.cart-item[data-cart-id="' + cartId + '"]');
+                itemRow.css('opacity', 0.5); // Show loading
+
+                $.ajax({
+                    url: '@Url.Action("UpdateVariant", "Cart")',
+                    type: 'POST',
+                    data: {
+                        cartId: cartId,
+                        newColorId: newColorId,
+                        newSizeId: newSizeId,
+                        __RequestVerificationToken: token
+                    },
+                    dataType: 'json', // Expect JSON response
+                    success: function(response) {
+                        if (response.success) {
+                            // Reload page for simplicity and accuracy (handles merge, price change, etc.)
+                            // You could update UI dynamically but reload is safer here.
+                             if(response.message !== "Lựa chọn không thay đổi.") { // Don't reload if nothing changed
+                                location.reload();
+                            } else {
+                                 itemRow.css('opacity', 1); // Restore opacity if nothing changed
+                            }
+                        } else {
+                            alert(response.message || "Không thể cập nhật lựa chọn.");
+                            location.reload(); // Reload to reset dropdowns on failure
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Update Variant Error:", status, error, xhr.responseText);
+                        alert('Lỗi kết nối khi cập nhật lựa chọn. Vui lòng thử lại.');
+                        location.reload(); // Reload to reset state
+                    },
+                    complete: function() {
+                        // Ensure opacity is restored if reload doesn't happen immediately
+                        itemRow.css('opacity', 1);
+                    }
+                });
+            }
+
+
+            function updateQuantity(cartId, newQuantity) {
+                 var itemRow = $('.cart-item[data-cart-id="' + cartId + '"]');
+                 itemRow.css('opacity', 0.5);
+                $.ajax({
+                    url: '@Url.Action("UpdateQuantity", "Cart")',
+                    type: 'POST',
+                    data: {
+                        cartId: cartId,
+                        quantity: newQuantity,
+                        __RequestVerificationToken: token
+                    },
+                     dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            $('.qty-input[data-cart-id="' + cartId + '"]').val(newQuantity);
+                            $('.item-total[data-cart-id="' + cartId + '"]').text(formatCurrency(response.itemTotal));
+                            $('#item-count').text(response.cartCount);
+                            $('#subtotal').text(formatCurrency(response.cartTotal));
+                            $('#total').text(formatCurrency(response.cartTotal));
+                        } else {
+                            alert(response.message);
+                            location.reload(); // Reload if server needs to reset state (e.g. stock issue)
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Update Quantity Error:", status, error, xhr.responseText);
+                        alert('Có lỗi xảy ra khi cập nhật số lượng. Vui lòng thử lại.');
+                    },
+                    complete: function() {
+                        itemRow.css('opacity', 1);
+                    }
+                });
+            }
+
+            function removeItem(cartId) {
+                 var itemRow = $('.cart-item[data-cart-id="' + cartId + '"]');
+                 itemRow.css('opacity', 0.5);
+                $.ajax({
+                    url: '@Url.Action("RemoveFromCart", "Cart")', // Matches Controller Action name
+                    type: 'POST',
+                    data: {
+                        cartId: cartId,
+                        __RequestVerificationToken: token
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.success) {
+                            itemRow.fadeOut(300, function () {
+                                $(this).remove();
+                                $('#item-count').text(response.cartCount);
+                                $('#subtotal').text(formatCurrency(response.cartTotal));
+                                $('#total').text(formatCurrency(response.cartTotal));
+
+                                if (response.cartCount === 0) {
+                                    location.reload(); // Reload to show empty cart message
+                                }
+                            });
+                        } else {
+                            itemRow.css('opacity', 1); // Restore opacity
+                            alert(response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                         console.error("Remove Item Error:", status, error, xhr.responseText);
+                        itemRow.css('opacity', 1); // Restore opacity
+                        alert('Có lỗi xảy ra khi xóa sản phẩm. Vui lòng thử lại.');
+                    }
+                });
+            }
+
+            function formatCurrency(value) {
+                const numberValue = Number(value);
+                 if (isNaN(numberValue)) {
+                      return '0 ₫';
+                 }
+                return numberValue.toLocaleString('vi-VN') + ' ₫';
+            }
+
+            // Auto dismiss alerts using Bootstrap Toast if available, otherwise fadeOut
+             if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                 var toastElList = [].slice.call(document.querySelectorAll('.alert-lv-success, .alert-lv-danger'));
+                 var toastList = toastElList.map(function (toastEl) {
+                      // Wrap alert in a toast structure if needed or assume it's already a toast
+                      // This example assumes it needs wrapping or direct conversion
+                     var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                     toast.show();
+                     return toast;
+                 });
+             } else {
+                 // Fallback to jQuery fadeOut if Bootstrap JS not loaded
+                 setTimeout(function () {
+                    $('.alert-lv-success, .alert-lv-danger').fadeOut('slow', function() { $(this).remove(); });
+                }, 5000);
+             }
+
+
+            // Manual dismiss button handler
+            $('.btn-close').click(function() {
+                 // Use Bootstrap's dismiss if available, otherwise fadeOut
+                if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+                     var alertNode = this.closest('.alert-lv-success, .alert-lv-danger');
+                     if(alertNode){
+                          var alertInstance = bootstrap.Alert.getOrCreateInstance(alertNode);
+                          if(alertInstance) alertInstance.close();
+                     }
+                } else {
+                    $(this).parent().fadeOut('slow', function() { $(this).remove(); });
+                }
+            });
+        });
+    </script>
+}

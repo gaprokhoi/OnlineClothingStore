@@ -1,0 +1,499 @@
+﻿@using ClothingStoreWebApp.Helpers
+@model IEnumerable<ClothingStoreWebApp.Models.Product>
+@{
+    ViewBag.Title = "Sản phẩm";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-tshirt"></i>
+            <span>Sản phẩm</span>
+        </h2>
+
+        @if (Session.IsAdmin())
+        {
+            <div>
+                @Html.ActionLink("Quản lý sản phẩm", "Index", "Admin", null, new { @class = "btn btn-warning" })
+                <span class="badge bg-info ms-2">Admin có thể quản lý</span>
+            </div>
+        }
+    </div>
+
+    @* Filters Section *@
+    <div class="card mb-4 filter-card">
+        <div class="card-body">
+            @using (Html.BeginForm("Index", "Product", FormMethod.Get, new { @class = "row g-3" }))
+            {
+                <div class="col-md-3">
+                    <label class="form-label">Danh mục</label>
+                    @Html.DropDownList("categoryId", ViewBag.CategoryID as SelectList, "-- Tất cả danh mục --", new { @class = "form-select" })
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Thương hiệu</label>
+                    @Html.DropDownList("brandId", ViewBag.BrandID as SelectList, "-- Tất cả thương hiệu --", new { @class = "form-select" })
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tìm kiếm</label>
+                    <input type="text" name="searchTerm" value="@ViewBag.CurrentSearchTerm" class="form-control" placeholder="Tên sản phẩm,Mô tả,..." />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary d-block w-100">
+                        <i class="fas fa-search"></i> Tìm
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Results Summary *@
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted">
+            Hiển thị @ViewBag.TotalProducts sản phẩm
+            @if (ViewBag.CurrentPage > 1)
+            {
+                <span>- Trang @ViewBag.CurrentPage/@ViewBag.TotalPages</span>
+            }
+        </span>
+
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="fas fa-sort"></i> Sắp xếp
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.ActionLink("Tên A-Z", "Index", new { sortBy = "name" }, new { @class = "dropdown-item" })</li>
+                <li>@Html.ActionLink("Giá thấp đến cao", "Index", new { sortBy = "price_asc" }, new { @class = "dropdown-item" })</li>
+                <li>@Html.ActionLink("Giá cao đến thấp", "Index", new { sortBy = "price_desc" }, new { @class = "dropdown-item" })</li>
+                <li>@Html.ActionLink("Mới nhất", "Index", new { sortBy = "newest" }, new { @class = "dropdown-item" })</li>
+            </ul>
+        </div>
+    </div>
+
+    @* CUSTOMER CARD VIEW *@
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
+                <div class="card h-100 product-card">
+                    <div class="position-relative product-image-wrapper">
+                        @if (item.ProductImages != null && item.ProductImages.Any())
+                        {
+                            var primaryImage = item.ProductImages.OrderBy(pi => pi.SortOrder).FirstOrDefault();
+                            <img src="@primaryImage.ImageURL" class="card-img-top product-image" alt="@item.ProductName">
+                            <div class="image-overlay">
+                                <div class="overlay-content">
+                                    <i class="fas fa-search-plus fa-2x"></i>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center no-image-placeholder">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        }
+
+                        @if (item.IsFeatured)
+                        {
+                            <span class="badge bg-warning position-absolute top-0 start-0 m-2 featured-badge">
+                                <i class="fas fa-star"></i> Nổi bật
+                            </span>
+                        }
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title product-title">@item.ProductName</h6>
+                        <p class="text-muted small mb-2">
+                            @(item.Brand != null ? item.Brand.BrandName : "") • @(item.Category != null ? item.Category.CategoryName : "")
+                        </p>
+
+                        @if (!string.IsNullOrEmpty(item.Description))
+                        {
+                            <p class="card-text small text-muted flex-grow-1">
+                                @(item.Description.Length > 80 ? item.Description.Substring(0, 80) + "..." : item.Description)
+                            </p>
+                        }
+
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="h6 text-primary mb-0 product-price">@item.BasePrice.ToString("C0")</span>
+                                <small class="text-muted">@item.Gender</small>
+                            </div>
+
+                            @* Add to Cart + Details buttons *@
+                            <div class="btn-group w-100 mb-2">
+                                <button type="button" class="btn btn-primary btn-sm btn-add-to-cart"
+                                        data-product-id="@item.ProductID"
+                                        data-product-name="@item.ProductName"
+                                        data-product-price="@item.BasePrice">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                                @Html.ActionLink("Chi tiết", "Details", new { id = item.ProductID }, new { @class = "btn btn-outline-primary btn-sm flex-fill" })
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @* Pagination *@
+    @if (ViewBag.TotalPages > 1)
+    {
+        <nav aria-label="Product pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        @Html.ActionLink("« Trước", "Index", new { page = ViewBag.CurrentPage - 1 }, new { @class = "page-link" })
+                    </li>
+                }
+
+                @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        @Html.ActionLink(i.ToString(), "Index", new { page = i }, new { @class = "page-link" })
+                    </li>
+                }
+
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <li class="page-item">
+                        @Html.ActionLink("Sau »", "Index", new { page = ViewBag.CurrentPage + 1 }, new { @class = "page-link" })
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
+
+@* Anti-forgery token *@
+@Html.AntiForgeryToken()
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+
+    // Quantity controls (cho Details page)
+    $('#quantity-minus').click(function() {
+        var qty = parseInt($('#quantity-input').val()) || 1;
+        if (qty > 1) {
+            $('#quantity-input').val(qty - 1);
+        }
+    });
+
+    $('#quantity-plus').click(function() {
+        var qty = parseInt($('#quantity-input').val()) || 1;
+        if (qty < 10) {
+            $('#quantity-input').val(qty + 1);
+        }
+    });
+
+    // Add to Cart functionality
+    $('.btn-add-to-cart, #add-to-cart-btn').click(function(e) {
+        e.preventDefault();
+
+        var productId = $(this).data('product-id');
+        var productName = $(this).data('product-name');
+        var quantity = $('#quantity-input').length ? parseInt($('#quantity-input').val()) : 1;
+        var button = $(this);
+
+        // Check if user is logged in
+        @if (Session["UserID"] == null)
+        {
+            <text>
+            if (confirm('Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Đăng nhập ngay?')) {
+                window.location.href = '@Url.Action("Login", "User", new { returnUrl = Request.Url.PathAndQuery })';
+            }
+            return;
+            </text>
+        }
+
+        // Disable button and show loading
+        var originalHtml = button.html();
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang thêm...');
+
+        // AJAX call to add to cart
+        $.ajax({
+            url: '@Url.Action("AddToCart", "Cart")',
+            type: 'POST',
+            data: {
+                productId: productId,
+                quantity: quantity,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function(result) {
+                if (result.success) {
+                    // Show success message
+                    showToast('success', result.message || 'Đã thêm "' + productName + '" vào giỏ hàng!');
+
+                    // Update cart count in header
+                    updateCartCount();
+
+                    // Change button to success state
+                    button.removeClass('btn-primary').addClass('btn-success')
+                          .html('<i class="fas fa-check"></i> Đã thêm');
+
+                    // Reset button after 2 seconds
+                    setTimeout(function() {
+                        button.prop('disabled', false)
+                              .removeClass('btn-success').addClass('btn-primary')
+                              .html(originalHtml);
+                    }, 2000);
+                } else {
+                    alert('Lỗi: ' + (result.message || 'Không thể thêm sản phẩm vào giỏ hàng'));
+                    button.prop('disabled', false).html(originalHtml);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Add to cart error:', error);
+                alert('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng. Vui lòng thử lại!');
+                button.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
+});
+
+// Toast notification function
+function showToast(type, message) {
+    // Remove existing toasts
+    $('.toast').remove();
+
+    var toastClass = type === 'success' ? 'bg-success' : 'bg-danger';
+    var toastHtml = `
+        <div class="toast align-items-center text-white ${toastClass} border-0 position-fixed"
+             style="top: 20px; right: 20px; z-index: 9999;" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="$(this).closest('.toast').remove()"></button>
+            </div>
+        </div>
+    `;
+
+    $('body').append(toastHtml);
+
+    // Auto remove after 4 seconds
+    setTimeout(function() {
+        $('.toast').fadeOut(function() {
+            $(this).remove();
+        });
+    }, 4000);
+}
+
+// Update cart count in header
+function updateCartCount() {
+    $.get('@Url.Action("GetCartCount", "Cart")', function(data) {
+        var count = data || 0;
+        $('.cart-count').text(count);
+        if (count > 0) {
+            $('.cart-count').show();
+        } else {
+            $('.cart-count').hide();
+        }
+    }).fail(function() {
+        console.log('Could not update cart count');
+    });
+}
+
+// Load cart count on page load
+updateCartCount();
+</script>
+
+<style>
+    /* Card Styles */
+    .product-card {
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .product-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    /* Image Wrapper & Overlay */
+    .product-image-wrapper {
+        position: relative;
+        overflow: hidden;
+        height: 250px;
+        cursor: pointer;
+        background-color: #f8f9fa;
+    }
+
+    .product-image {
+        width: 100%;
+        height: 250px;
+        object-fit: contain;
+        object-position: center;
+        transition: transform 0.5s ease;
+        padding: 10px;
+    }
+
+    .product-card:hover .product-image {
+        transform: scale(1.1);
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .product-card:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .overlay-content i {
+        color: white;
+        transform: scale(0.8);
+        transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .overlay-content i {
+        transform: scale(1);
+    }
+
+    .no-image-placeholder {
+        height: 250px;
+        transition: background-color 0.3s ease;
+        cursor: pointer;
+    }
+
+    .product-card:hover .no-image-placeholder {
+        background-color: #e9ecef !important;
+    }
+
+    /* Featured Badge */
+    .featured-badge {
+        animation: pulse 2s ease-in-out infinite;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+    }
+
+
+    /* Product Title */
+    .product-title {
+        transition: color 0.3s ease;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .product-card:hover .product-title {
+        color: #0d6efd;
+    }
+
+    /* Product Price */
+    .product-price {
+        transition: transform 0.3s ease;
+        display: inline-block;
+    }
+
+    .product-card:hover .product-price {
+        transform: scale(1.1);
+    }
+
+    /* Buttons */
+    .btn-add-to-cart {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-add-to-cart:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+    }
+
+    .btn-outline-primary {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-outline-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
+
+    /* Filter Card */
+    .filter-card {
+        transition: box-shadow 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .filter-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+
+    /* Form Controls */
+    .form-select, .form-control {
+        transition: all 0.3s ease;
+    }
+
+    .form-select:hover, .form-control:hover {
+        border-color: #0d6efd;
+    }
+
+    .form-select:focus, .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Search Button */
+    .btn-primary {
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(13, 110, 253, 0.4);
+    }
+
+    /* Pagination */
+    .page-link {
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .page-item.active .page-link {
+        animation: pageActive 0.5s ease;
+    }
+
+
+    /* Dropdown */
+    .dropdown-toggle {
+        transition: all 0.3s ease;
+    }
+
+    .dropdown-toggle:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .dropdown-item {
+        transition: all 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+        transform: translateX(5px);
+        background-color: #0d6efd;
+        color: white;
+    }
+
+   
+</style>

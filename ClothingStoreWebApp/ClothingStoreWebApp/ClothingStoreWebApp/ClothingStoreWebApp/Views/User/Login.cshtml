@@ -1,0 +1,109 @@
+﻿@model ClothingStoreWebApp.ViewModels.LoginViewModel
+@{
+    ViewBag.Title = "Đăng nhập";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<main aria-labelledby="title" class="container py-5">
+    <h2 id="title" class="mb-4">@ViewBag.Title</h2>
+
+    @* Hiển thị thông báo ReturnUrl nếu có *@
+    @if (!string.IsNullOrEmpty(Model.ReturnUrl))
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Bạn sẽ được chuyển đến: <strong>@Model.ReturnUrl</strong> sau khi đăng nhập.
+        </div>
+    }
+
+    @using (Html.BeginForm("Login", "User", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.ReturnUrl)
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+
+        <div class="mb-3 row">
+            @Html.LabelFor(m => m.Email, new { @class = "col-sm-3 col-form-label" })
+            <div class="col-sm-9">
+                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Email" })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="mb-3 row">
+            @Html.LabelFor(m => m.Password, new { @class = "col-sm-3 col-form-label" })
+            <div class="col-sm-9">
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Mật khẩu" })
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="mb-3 row">
+            <div class="offset-sm-3 col-sm-9 form-check">
+                @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input" })
+                @Html.LabelFor(m => m.RememberMe, "Ghi nhớ đăng nhập", new { @class = "form-check-label" })
+            </div>
+        </div>
+
+        <div class="mb-3 row">
+            <div class="offset-sm-3 col-sm-9">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                </button>
+            </div>
+        </div>
+
+        <div class="offset-sm-3 col-sm-9">
+            @Html.ActionLink("Đăng ký tài khoản mới", "Register", "User",
+                new { returnUrl = Model.ReturnUrl }, new { @class = "text-decoration-none" })
+        </div>
+    }
+
+    <div class="col-md-5 mt-4">
+        <div class="card bg-light mb-3">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-shopping-cart"></i> Trợ giúp mua sắm
+                </h6>
+                <p>Đăng nhập để truy cập giỏ hàng và hoàn tất đơn hàng của bạn.</p>
+                @if (!string.IsNullOrEmpty(Model.ReturnUrl) && Model.ReturnUrl.ToLower().Contains("/cart"))
+                {
+                    <div class="alert alert-warning">
+                        Sau khi đăng nhập, bạn sẽ được chuyển về giỏ hàng.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var emailField = document.getElementById('Email');
+            if (emailField) emailField.focus();
+        });
+    </script>
+}
+
+<style>
+    .alert {
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .btn-primary {
+        border-radius: 6px;
+        padding: 10px 20px;
+    }
+
+    .card {
+        border-radius: 8px;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+    }
+</style>

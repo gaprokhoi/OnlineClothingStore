@@ -1,0 +1,479 @@
+﻿@model ClothingStoreWebApp.Models.Product
+@{
+    ViewBag.Title = "Thêm sản phẩm mới";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-plus-circle text-success"></i>
+            Thêm sản phẩm mới
+        </h2>
+        @Html.ActionLink("Quay lại", "Index", "Admin", null, new { @class = "btn btn-secondary" })
+    </div>
+
+    @using (Html.BeginForm("Create", "Product", FormMethod.Post, new { @class = "row", enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Thông tin cơ bản
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.ProductName, new { @class = "form-label" })
+                        @Html.TextBoxFor(model => model.ProductName, new { @class = "form-control", placeholder = "Tên sản phẩm", id = "ProductName" }) @Html.ValidationMessageFor(model => model.ProductName, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.Description, new { @class = "form-label" })
+                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", rows = 4, placeholder = "Mô tả chi tiết sản phẩm" })
+                        @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            @Html.LabelFor(model => model.CategoryID, "Danh mục", new { @class = "form-label" })
+                            @Html.DropDownList("CategoryID", (SelectList)ViewBag.CategoryID, "-- Chọn danh mục --", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.CategoryID, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            @Html.LabelFor(model => model.BrandID, "Thương hiệu", new { @class = "form-label" })
+                            @Html.DropDownList("BrandID", (SelectList)ViewBag.BrandID, "-- Chọn thương hiệu --", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.BrandID, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            @Html.LabelFor(model => model.CollectionID, "Bộ sưu tập", new { @class = "form-label" })
+                            @Html.DropDownList("CollectionID", (SelectList)ViewBag.CollectionID, "-- Chọn bộ sưu tập (tùy chọn) --", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.CollectionID, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            @Html.LabelFor(model => model.Gender, "Giới tính", new { @class = "form-label" })
+                            @Html.DropDownListFor(model => model.Gender, new SelectList(new[] { "Nam", "Nữ", "Unisex" }), "-- Chọn giới tính --", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.Gender, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.Material, "Chất liệu", new { @class = "form-label" })
+                        @Html.TextBoxFor(model => model.Material, new { @class = "form-control", placeholder = "VD: Cotton 100%" })
+                        @Html.ValidationMessageFor(model => model.Material, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.CareInstructions, "Hướng dẫn bảo quản", new { @class = "form-label" })
+                        @Html.TextAreaFor(model => model.CareInstructions, new { @class = "form-control", rows = 2, placeholder = "VD: Giặt máy ở nhiệt độ thường" })
+                        @Html.ValidationMessageFor(model => model.CareInstructions, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            @* ✅ SIZE VÀ COLOR MANAGEMENT SECTION (ĐÃ CẬP NHẬT) *@
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-palette"></i> Quản lý Size và Màu sắc
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Size có sẵn:</strong></label>
+                            <div class="size-selection">
+                                @if (ViewBag.AllSizes != null && (ViewBag.AllSizes as List<ClothingStoreWebApp.Models.Size>).Any())
+                                {
+                                    foreach (var size in ViewBag.AllSizes as List<ClothingStoreWebApp.Models.Size>)
+                                    {
+                                        <div class="form-check form-check-inline mb-2">
+                                            <input type="checkbox" name="SelectedSizes" value="@size.SizeID"
+                                                   class="form-check-input size-checkbox" id="size_@size.SizeID">
+                                            <label class="form-check-label size-label" for="size_@size.SizeID">
+                                                <span class="size-badge">@size.SizeName</span>
+                                            </label>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Chưa có Size trong hệ thống. Vui lòng thêm Size trước.
+                                    </div>
+                                }
+                            </div>
+                            <small class="text-muted">* Chọn các size sẽ có trong sản phẩm</small>
+                        </div>
+
+                        @* --- KHỐI MÀU SẮC ĐÃ ĐƯỢC CẬP NHẬT --- *@
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Màu sắc có sẵn:</strong></label>
+                            <div class="color-selection row">
+                                @if (ViewBag.AllColors != null && (ViewBag.AllColors as List<ClothingStoreWebApp.Models.Color>).Any())
+                                {
+                                    foreach (var color in ViewBag.AllColors as List<ClothingStoreWebApp.Models.Color>)
+                                    {
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check color-item">
+                                                <input type="checkbox" name="SelectedColors" value="@color.ColorID"
+                                                       class="form-check-input" id="color_@color.ColorID">
+                                                <label class="form-check-label d-flex align-items-center" for="color_@color.ColorID">
+                                                    <span class="color-preview me-2" style="background-color: @color.ColorCode;"></span>
+                                                    <span class="color-name">@color.ColorName</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="col-12">
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Chưa có Màu sắc trong hệ thống. Vui lòng thêm Color trước.
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <small class="text-muted">* Chọn các màu sẽ có trong sản phẩm</small>
+                        </div>
+                        @* --- HẾT KHỐI CẬP NHẬT --- *@
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Lưu ý:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Hệ thống sẽ tự động tạo <strong>ProductVariant</strong> cho mỗi combination Size + Color được chọn</li>
+                            <li>Nếu không chọn Size/Color nào, sẽ tạo variant mặc định với "One Size" và "Default Color"</li>
+                            <li>Mỗi variant sẽ có giá bằng "Giá cơ bản" và SKU tự động</li>
+                        </ul>
+                    </div>
+
+                    @* ✅ VARIANT PREVIEW SECTION *@
+                    <div class="mt-4" id="variant-preview" style="display: none;">
+                        <h6><i class="fas fa-eye"></i> Preview các Variant sẽ được tạo:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Size</th>
+                                        <th>Màu sắc</th>
+                                        <th>SKU Preview</th>
+                                        <th>Giá</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="variant-preview-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Image Upload Section *@
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-images"></i> Hình ảnh sản phẩm
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn ảnh sản phẩm</label>
+                        <input type="file" name="productImages" multiple accept="image/*" class="form-control" id="productImages">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle"></i>
+                            Chọn nhiều ảnh (tối đa 5MB/ảnh). Định dạng: JPG, JPEG, PNG, GIF. Ảnh đầu tiên sẽ làm ảnh chính.
+                        </div>
+                    </div>
+
+                    <div id="imagePreview" class="row"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cog"></i> Cài đặt
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.BasePrice, "Giá cơ bản (VND)", new { @class = "form-label" })
+                        @Html.TextBoxFor(model => model.BasePrice, new { @class = "form-control", type = "number", step = "1000", min = "0", placeholder = "0", id = "basePrice" })
+                        @Html.ValidationMessageFor(model => model.BasePrice, "", new { @class = "text-danger" })
+                        <div class="form-text">Giá này sẽ áp dụng cho tất cả variants</div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        @Html.CheckBoxFor(model => model.IsActive, new { @class = "form-check-input", @checked = "checked" })
+                        @Html.LabelFor(model => model.IsActive, "Kích hoạt sản phẩm", new { @class = "form-check-label" })
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        @Html.CheckBoxFor(model => model.IsFeatured, new { @class = "form-check-input" })
+                        @Html.LabelFor(model => model.IsFeatured, "Sản phẩm nổi bật", new { @class = "form-check-label" })
+                    </div>
+
+                    @* ✅ VARIANT COUNT DISPLAY *@
+                    <div class="alert alert-secondary" id="variant-count">
+                        <strong>Số Variant sẽ tạo:</strong> <span id="total-variants">0</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Tạo sản phẩm
+                        </button>
+                        @Html.ActionLink("Hủy", "Index", "Admin", null, new { @class = "btn btn-secondary" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* JavaScript for Image Preview và Variant Preview *@
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // ✅ SIZE/COLOR SELECTION HANDLERS
+        $('input[name="SelectedSizes"], input[name="SelectedColors"], #basePrice, #ProductName').on('change input', updateVariantPreview);
+
+        // --- Thêm script cho size badge (giống file Edit) ---
+        document.querySelectorAll('.size-checkbox').forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                var badge = this.nextElementSibling.querySelector('.size-badge');
+                if (this.checked) {
+                    badge.classList.add('selected');
+                } else {
+                    badge.classList.remove('selected');
+                }
+            });
+        });
+        // --- Hết script cho size badge ---
+
+        function updateVariantPreview() {
+            var selectedSizes = $('input[name="SelectedSizes"]:checked');
+            var selectedColors = $('input[name="SelectedColors"]:checked');
+            var basePrice = $('#basePrice').val() || 0;
+            var productName = $('#ProductName').val() || 'PRODUCT';
+
+            var totalVariants = selectedSizes.length * selectedColors.length;
+            $('#total-variants').text(totalVariants);
+
+            if (totalVariants > 0) {
+                $('#variant-preview').show();
+                var previewHtml = '';
+
+                selectedSizes.each(function () {
+                    var sizeName = $(this).next().text().trim();
+                    var sizeId = $(this).val();
+
+                    selectedColors.each(function () {
+                        var colorName = $(this).next().find('.color-name').text().trim(); // Cập nhật selector
+                        var colorId = $(this).val();
+                        var colorCode = $(this).next().find('.color-preview').css('background-color');
+
+                        var skuPreview = generateSKUPreview(productName, sizeId, colorId);
+                        var formattedPrice = formatCurrency(basePrice);
+
+                        previewHtml += `
+                        <tr>
+                            <td><span class="badge bg-primary">${sizeName}</span></td>
+                            <td>
+                                <span class="color-preview me-2" style="background-color: ${colorCode}; width: 16px; height: 16px; border: 1px solid #ccc; border-radius: 3px; display: inline-block;"></span>
+                                ${colorName}
+                            </td>
+                            <td><code>${skuPreview}</code></td>
+                            <td><strong>${formattedPrice}</strong></td>
+                        </tr>
+                    `;
+                    });
+                });
+
+                $('#variant-preview-body').html(previewHtml);
+            } else {
+                $('#variant-preview').hide();
+            }
+        }
+
+        function generateSKUPreview(productName, sizeId, colorId) {
+            var baseSku = productName.replace(/\s+/g, '').toUpperCase().substring(0, 10);
+            return `${baseSku}_S${sizeId}_C${colorId}`;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount || 0);
+        }
+
+        // ✅ IMAGE PREVIEW (EXISTING)
+        document.getElementById('productImages').addEventListener('change', function (e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+
+            const files = e.target.files;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-md-4 mb-3';
+                        col.innerHTML = `
+                        <div class="card">
+                            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="card-body p-2">
+                                <small class="text-muted">${file.name}</small>
+                                ${i === 0 ? '<br><span class="badge bg-success">Ảnh chính</span>' : ''}
+                            </div>
+                        </div>
+                    `;
+                        preview.appendChild(col);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    /* --- CSS CHO SIZE (ĐÃ CẬP NHẬT TỪ FILE EDIT) --- */
+    .size-selection {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .size-checkbox {
+        display: none;
+    }
+
+    .size-label {
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .size-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background-color: #fff;
+        color: #495057;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        min-width: 50px;
+        text-align: center;
+    }
+
+        .size-badge:hover {
+            border-color: #0d6efd;
+            background-color: #e7f1ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+        }
+
+        .size-checkbox:checked + .size-label .size-badge,
+        .size-badge.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+    /* --- CSS CHO MÀU SẮC (ĐÃ CẬP NHẬT TỪ FILE EDIT) --- */
+    .color-selection {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .color-item {
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .color-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(3px);
+        }
+
+    .form-check-input:checked ~ .form-check-label .color-name {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+
+    .color-preview {
+        width: 28px;
+        height: 28px;
+        border: 2px solid #dee2e6;
+        border-radius: 6px;
+        display: inline-block;
+        flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .color-item:hover .color-preview {
+        transform: scale(1.15);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .form-check-input:checked ~ .form-check-label .color-preview {
+        border-color: #0d6efd;
+        border-width: 3px;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+    }
+
+    .color-name {
+        font-size: 14px;
+        transition: color 0.3s ease;
+    }
+
+    /* Scrollbar styling for color list */
+    .color-selection::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .color-selection::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .color-selection::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+        .color-selection::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    /* --- HẾT CSS MỚI --- */
+
+    /* (CSS cũ không cần thiết nữa, đã bị thay thế) */
+    .bg-outline-primary {
+        background-color: white;
+        border-color: #007bff;
+        color: #007bff;
+    }
+</style>

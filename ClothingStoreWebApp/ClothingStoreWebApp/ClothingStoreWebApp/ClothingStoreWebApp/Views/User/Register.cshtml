@@ -1,0 +1,108 @@
+﻿<!-- Views/User/Register.cshtml -->
+<!--
+    REGISTER PAGE - Trang đăng ký tài khoản mới
+    Framework: ASP.NET MVC + Bootstrap 5
+    Backend Controller: UserController.Register()
+-->
+
+@model ClothingStoreWebApp.ViewModels.RegisterViewModel
+@{
+    // Set page title và layout
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Card container cho registration form -->
+            <div class="card">
+                <!-- Header -->
+                <div class="card-header">
+                    <h3 class="text-center">Create Account</h3>
+                </div>
+
+                <div class="card-body">
+                    <!--
+                        REGISTRATION FORM - gửi POST request đến UserController.Register()
+                        Model binding: form fields tự động map với RegisterViewModel properties
+                    -->
+                    @using (Html.BeginForm("Register", "User", FormMethod.Post, new { @class = "form" }))
+                    {
+                        <!-- CSRF protection -->
+                        @Html.AntiForgeryToken()
+
+                        <!-- Display all validation errors -->
+                        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                        <!-- FIRST NAME & LAST NAME - Two columns layout -->
+                        <div class="row">
+                            <!-- First Name column -->
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    @Html.LabelFor(m => m.FirstName, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", placeholder = "First Name" })
+                                    @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <!-- Last Name column -->
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    @Html.LabelFor(m => m.LastName, new { @class = "form-label" })
+                                    @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", placeholder = "Last Name" })
+                                    @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EMAIL FIELD -->
+                        <div class="form-group mb-3">
+                            @Html.LabelFor(m => m.Email, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Enter your email" })
+                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                        </div>
+
+                        <!-- PHONE NUMBER (Optional field) -->
+                        <div class="form-group mb-3">
+                            @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "Phone Number (optional)" })
+                            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+                        </div>
+
+                        <!-- PASSWORD FIELD -->
+                        <div class="form-group mb-3">
+                            @Html.LabelFor(m => m.Password, new { @class = "form-label" })
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Enter password (min 6 characters)" })
+                            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                        </div>
+
+                        <!-- CONFIRM PASSWORD FIELD -->
+                        <div class="form-group mb-3">
+                            @Html.LabelFor(m => m.ConfirmPassword, new { @class = "form-label" })
+                            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirm your password" })
+                            @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
+                        </div>
+
+                        <!-- TERMS & CONDITIONS CHECKBOX -->
+                        <div class="form-group mb-3 form-check">
+                            @Html.CheckBoxFor(m => m.AgreeToTerms, new { @class = "form-check-input" })
+                            @Html.LabelFor(m => m.AgreeToTerms, "I agree to the Terms and Conditions", new { @class = "form-check-label" })
+                            @Html.ValidationMessageFor(m => m.AgreeToTerms, "", new { @class = "text-danger" })
+                        </div>
+
+                        <!-- SUBMIT BUTTON -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">Create Account</button>
+                        </div>
+                    }
+
+                    <!-- LINK TO LOGIN PAGE -->
+                    <div class="text-center mt-3">
+                        <p>Already have an account? @Html.ActionLink("Login here", "Login", "User")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

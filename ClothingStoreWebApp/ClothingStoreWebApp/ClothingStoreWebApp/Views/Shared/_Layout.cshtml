@@ -1,0 +1,276 @@
+﻿@using ClothingStoreWebApp.Helpers
+
+@{
+    Layout = null;
+    var isLoggedIn = Session["IsLoggedIn"] as bool? == true;
+    var userName = Session["UserName"]?.ToString() ?? "Guest";
+    var userRole = Session["Role"]?.ToString() ?? "Customer";
+    var isAdmin = userRole == "Admin";
+    var cartCount = Session["CartCount"] as int? ?? 0;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Clothing Store</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            font-size: 0.65rem;
+            padding: 0.25em 0.5em;
+        }
+
+        .cart-count-badge {
+            min-width: 20px;
+            min-height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 6px;
+        }
+
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+
+            .nav-link:hover {
+                color: #0d6efd !important;
+            }
+
+        /* Cần thiết cho dropdown trên nền tối */
+        .dropdown-menu-dark .dropdown-item {
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+            .dropdown-menu-dark .dropdown-item:hover {
+                color: #fff;
+                background-color: rgba(255, 255, 255, 0.15);
+            }
+
+            .dropdown-menu-dark .dropdown-item i {
+                width: 20px;
+                margin-right: 5px;
+            }
+
+        footer {
+            margin-top: auto;
+        }
+
+        .main-content {
+            min-height: calc(100vh - 200px);
+        }
+    </style>
+
+    @RenderSection("styles", required: false)
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+                <i class="fas fa-store"></i> Clothing Store
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Home")">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Product")">
+                            <i class="fas fa-tshirt"></i> Sản phẩm
+                        </a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-list"></i> Danh mục
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="categoryDropdown">
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Product", new { gender = "Nam" })">
+                                    <i class="fas fa-male"></i> Thời Trang Nam
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Product", new { gender = "Nữ" })">
+                                    <i class="fas fa-female"></i> Thời Trang Nữ
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Product", new { gender = "TreEm" })">
+                                    <i class="fas fa-child"></i> Thời Trang Trẻ Em
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Product", new { categoryId = 3 })">
+                                    <i class="fas fa-glasses"></i> Phụ Kiện
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("List", "Category")">
+                                    <i class="fas fa-bars"></i> Xem tất cả
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("List", "Brand")">
+                            <i class="fas fa-tags"></i> Thương hiệu
+                        </a>
+                    </li>
+                    @if (isAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Index", "Admin")" style="color: #ff8c00; font-weight: bold;">
+                                <i class="fas fa-user-shield"></i> Admin
+                            </a>
+                        </li>
+                    }
+                </ul>
+
+                <ul class="navbar-nav ms-auto">
+                    @* Cart Icon with Counter *@
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" id="cartLink" href="@Url.Action("Index", "Cart")">
+                            <i class="fas fa-shopping-cart"></i> Giỏ Hàng
+                            <span class="badge bg-danger cart-count-badge" id="cartBadge" style="position: absolute; top: 0px; right: -5px; @(cartCount > 0 ? "" : "display:none;")">
+                                @cartCount
+                            </span>
+                        </a>
+                    </li>
+
+
+                    @* User Menu *@
+                    @if (isLoggedIn)
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user"></i> @Session["UserName"]
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="userDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("Profile", "User")">
+                                        <i class="fas fa-user-circle"></i> Thông tin cá nhân
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("MyOrders", "Order")">
+                                        <i class="fas fa-shopping-bag"></i> Đơn hàng của tôi
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("Index", "Wishlist")">
+                                        <i class="fas fa-heart"></i> Danh sách yêu thích
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("Logout", "User")">
+                                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Login", "User")">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main role="main" class="main-content">
+        @RenderBody()
+    </main>
+
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Clothing Store</h5>
+                    <p>Thời trang chất lượng cao</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Liên hệ</h5>
+                    <p>
+                        <i class="fas fa-envelope"></i> contact@clothingstore.com<br>
+                        <i class="fas fa-phone"></i> 0123 456 789
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Theo dõi chúng tôi</h5>
+                    <a href="https://www.facebook.com/" class="text-white me-3"><i class="fab fa-facebook fa-2x"></i></a>
+                    <a href="https://www.instagram.com/" class="text-white me-3"><i class="fab fa-instagram fa-2x"></i></a>
+                </div>
+            </div>
+            <hr style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <p class="mb-0">&copy; @DateTime.Now.Year - Clothing Store. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Function to update cart badge globally
+        function updateCartBadge(count) {
+            var badge = $('#cartBadge');
+            if (count > 0) {
+                badge.text(count).show();
+            } else {
+                badge.text('0').hide();
+            }
+        }
+
+        // Make function globally available
+        window.updateCartBadge = updateCartBadge;
+
+        // Cập nhật lại số lượng giỏ hàng khi trang được tải
+        // (Tránh trường hợp bị cache)
+        $(document).ready(function() {
+            var initialCount = parseInt('@cartCount');
+            updateCartBadge(initialCount);
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

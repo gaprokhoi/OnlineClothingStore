@@ -1,0 +1,701 @@
+﻿@model IEnumerable<ClothingStoreWebApp.Models.Order>
+
+@{
+    ViewBag.Title = "Đơn Hàng Của Tôi";
+}
+
+<style>
+    .orders-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 60px 20px;
+        font-family: 'Futura', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .orders-header {
+        margin-bottom: 50px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid #d4af37;
+    }
+
+        .orders-header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .orders-header p {
+            color: #666;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+    .alert-lv-success {
+        padding: 20px 25px;
+        margin-bottom: 30px;
+        background: #f0f8f0;
+        border-left: 4px solid #d4af37;
+        color: #1a1a1a;
+        font-size: 0.9rem;
+        letter-spacing: 0.3px;
+        position: relative;
+    }
+
+    .alert-lv-danger {
+        padding: 20px 25px;
+        margin-bottom: 30px;
+        background: #fff5f5;
+        border-left: 4px solid #dc3545;
+        color: #721c24;
+        font-size: 0.9rem;
+        letter-spacing: 0.3px;
+    }
+
+        .alert-lv-success .btn-close,
+        .alert-lv-danger .btn-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+            .alert-lv-success .btn-close:hover,
+            .alert-lv-danger .btn-close:hover {
+                opacity: 1;
+            }
+
+    .lv-card {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .orders-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .orders-table thead {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+
+            .orders-table thead th {
+                padding: 25px 20px;
+                color: #d4af37;
+                font-size: 0.85rem;
+                font-weight: 500;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                border: none;
+            }
+
+        .orders-table tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+            .orders-table tbody tr:hover {
+                background: #fafafa;
+                transform: scale(1.01);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+        .orders-table tbody td {
+            padding: 25px 20px;
+            vertical-align: middle;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+    .order-number {
+        color: #1a1a1a;
+        font-weight: 600;
+        letter-spacing: 1px;
+        font-size: 1rem;
+    }
+
+    .order-date {
+        color: #1a1a1a;
+        font-weight: 500;
+        margin-bottom: 3px;
+    }
+
+    .order-time {
+        color: #999;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-lv {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 2px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        border: 1px solid;
+    }
+
+    .badge-info {
+        background: #e3f2fd;
+        color: #1976d2;
+        border-color: #1976d2;
+    }
+
+    .badge-warning {
+        background: #fff8e1;
+        color: #f57c00;
+        border-color: #f57c00;
+    }
+
+    .badge-processing {
+        background: #e1f5fe;
+        color: #0288d1;
+        border-color: #0288d1;
+    }
+
+    .badge-shipped {
+        background: #e8eaf6;
+        color: #3f51b5;
+        border-color: #3f51b5;
+    }
+
+    .badge-success {
+        background: #e8f5e9;
+        color: #388e3c;
+        border-color: #388e3c;
+    }
+
+    .badge-danger {
+        background: #ffebee;
+        color: #c62828;
+        border-color: #c62828;
+    }
+
+    .badge-paid {
+        background: #f0f8f0;
+        color: #2e7d32;
+        border-color: #2e7d32;
+    }
+
+    .badge-unpaid {
+        background: #fff8e1;
+        color: #f57c00;
+        border-color: #f57c00;
+    }
+
+    .order-total {
+        color: #1a1a1a;
+        font-weight: 600;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-lv-action {
+        padding: 10px 20px;
+        background: transparent;
+        border: 1px solid #d4d4d4;
+        color: #666;
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0 3px;
+    }
+
+        .btn-lv-action:hover {
+            background: #1a1a1a;
+            color: #d4af37;
+            border-color: #1a1a1a;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+    .btn-lv-cancel {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+        .btn-lv-cancel:hover {
+            background: #dc3545;
+            color: #fff;
+            border-color: #dc3545;
+        }
+
+    .empty-orders {
+        text-align: center;
+        padding: 100px 40px;
+        background: #fafafa;
+    }
+
+        .empty-orders i {
+            font-size: 5rem;
+            color: #d4d4d4;
+            margin-bottom: 30px;
+        }
+
+        .empty-orders h3 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #666;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .empty-orders p {
+            color: #999;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            margin-bottom: 40px;
+        }
+
+    .btn-lv-primary {
+        padding: 18px 40px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: #d4af37;
+        border: 2px solid #d4af37;
+        font-size: 0.95rem;
+        font-weight: 500;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-lv-primary:hover {
+            background: #d4af37;
+            color: #1a1a1a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+            text-decoration: none;
+        }
+
+    .pagination-lv {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 50px;
+        gap: 10px;
+    }
+
+    .page-item-lv {
+        list-style: none;
+    }
+
+    .page-link-lv {
+        padding: 12px 20px;
+        background: transparent;
+        border: 1px solid #d4d4d4;
+        color: #666;
+        font-size: 0.85rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .page-link-lv:hover {
+            background: #1a1a1a;
+            color: #d4af37;
+            border-color: #1a1a1a;
+            text-decoration: none;
+        }
+
+    .page-item-lv.active .page-link-lv {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: #d4af37;
+        border-color: #d4af37;
+    }
+
+    /* Modal Styles */
+    .modal-lv .modal-content {
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-lv .modal-header {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: #d4af37;
+        padding: 25px 30px;
+        border: none;
+    }
+
+    .modal-lv .modal-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .modal-lv .modal-body {
+        padding: 35px 30px;
+        color: #333;
+        line-height: 1.8;
+    }
+
+    .modal-lv .modal-footer {
+        padding: 25px 30px;
+        border: none;
+        background: #fafafa;
+    }
+
+    .btn-lv-secondary {
+        padding: 12px 25px;
+        background: transparent;
+        color: #666;
+        border: 1px solid #d4d4d4;
+        font-size: 0.85rem;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-lv-secondary:hover {
+            background: #f5f5f5;
+            color: #1a1a1a;
+            border-color: #999;
+        }
+
+    .btn-lv-danger {
+        padding: 12px 25px;
+        background: #dc3545;
+        color: #fff;
+        border: 2px solid #dc3545;
+        font-size: 0.85rem;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-lv-danger:hover {
+            background: #c82333;
+            border-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+</style>
+
+<div class="orders-container">
+    <div class="orders-header">
+        <h1><i class="fas fa-shopping-bag"></i> Đơn Hàng Của Tôi</h1>
+        <p>Theo dõi và quản lý đơn hàng của bạn</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert-lv-success">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">×</button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert-lv-danger">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">×</button>
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="lv-card">
+            <div class="table-responsive overflow-x-hidden">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Đơn Hàng</th>
+                            <th>Ngày Đặt</th>
+                            <th>Sản Phẩm</th>
+                            <th>Tổng Tiền</th>
+                            <th>Trạng Thái</th>
+                            <th>Thanh Toán</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="order-number">#@order.OrderNumber</span>
+                                </td>
+                                <td>
+                                    <div class="order-date">@order.OrderDate.ToString("dd/MM/yyyy")</div>
+                                    <div class="order-time">@order.OrderDate.ToString("HH:mm")</div>
+                                </td>
+                                <td>
+                                    @{
+                                        var itemCount = order.OrderItems != null ? order.OrderItems.Count() : 0;
+                                    }
+                                    <span class="badge-lv badge-info">@itemCount sản phẩm</span>
+                                </td>
+                                <td>
+                                    <span class="order-total">@order.TotalAmount.ToString("N0") ₫</span>
+                                </td>
+                                <td>
+                                    @{
+                                        var statusClass = "secondary";
+                                        var statusText = order.OrderStatus?.StatusName ?? "Unknown";
+
+                                        switch (statusText)
+                                        {
+                                            case "Pending":
+                                                statusClass = "warning";
+                                                statusText = "Chờ xử lý";
+                                                break;
+                                            case "Processing":
+                                                statusClass = "processing";
+                                                statusText = "Đang xử lý";
+                                                break;
+                                            case "Shipped":
+                                                statusClass = "shipped";
+                                                statusText = "Đang giao";
+                                                break;
+                                            case "Delivered":
+                                                statusClass = "success";
+                                                statusText = "Đã giao";
+                                                break;
+                                            case "Cancelled":
+                                                statusClass = "danger";
+                                                statusText = "Đã hủy";
+                                                break;
+                                        }
+                                    }
+                                    <span class="badge-lv badge-@statusClass">@statusText</span>
+                                </td>
+                                <td>
+                                    @{
+                                        var paymentClass = order.PaymentStatus == "Paid" ? "paid" : "unpaid";
+                                        var paymentText = order.PaymentStatus == "Paid" ? "Đã thanh toán" : "Chưa thanh toán";
+                                    }
+                                    <span class="badge-lv badge-@paymentClass">@paymentText</span>
+                                </td>
+                                <td>
+                                    <div style="white-space: nowrap;">
+                                        <a href="@Url.Action("OrderDetails", new { id = order.OrderID })"
+                                           class="btn-lv-action"
+                                           title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i> Xem
+                                        </a>
+                                        @if (order.OrderStatus?.StatusName == "Shipped")
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-success"
+                                                    onclick="confirmReceived(@order.OrderID)">
+                                                <i class="fas fa-check"></i> Đã nhận
+                                            </button>
+                                        }
+
+                                        @* Nút Yêu cầu hủy - chỉ hiện khi đơn Pending *@
+                                        @if (order.OrderStatus?.StatusName == "Pending")
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="showCancelModal(@order.OrderID)"
+                                                    title="Yêu cầu hủy đơn hàng">
+                                                <i class="fas fa-times"></i> Yêu cầu hủy
+                                            </button>
+                                        }
+
+                                        @* Hiển thị trạng thái đang chờ hủy *@
+                                        @if (order.OrderStatus?.StatusName == "Pending Cancellation")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-clock"></i> Chờ admin xác nhận hủy
+                                            </span>
+                                        }
+
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @* Pagination if needed *@
+        if (ViewBag.TotalPages > 1)
+        {
+            <nav aria-label="Order pagination">
+                <ul class="pagination-lv">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <li class="page-item-lv">
+                            <a class="page-link-lv" href="@Url.Action("MyOrders", new { page = ViewBag.CurrentPage - 1 })">
+                                <i class="fas fa-chevron-left"></i> Trước
+                            </a>
+                        </li>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item-lv @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link-lv" href="@Url.Action("MyOrders", new { page = i })">@i</a>
+                        </li>
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <li class="page-item-lv">
+                            <a class="page-link-lv" href="@Url.Action("MyOrders", new { page = ViewBag.CurrentPage + 1 })">
+                                Sau <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="lv-card empty-orders">
+            <i class="fas fa-shopping-bag"></i>
+            <h3>Bạn Chưa Có Đơn Hàng Nào</h3>
+            <p>Hãy bắt đầu mua sắm ngay để trải nghiệm dịch vụ tuyệt vời của chúng tôi!</p>
+            <a href="@Url.Action("Index", "Product")" class="btn-lv-primary">
+                <i class="fas fa-shopping-cart"></i> Mua Sắm Ngay
+            </a>
+        </div>
+    }
+</div>
+
+@* Cancel Order Modal *@
+<div class="modal fade" id="cancelOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Yêu Cầu Hủy Đơn Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Vui lòng cho biết lý do bạn muốn hủy đơn hàng này:</p>
+                <textarea id="cancellationReason" class="form-control" rows="3" 
+                          placeholder="Ví dụ: Đặt nhầm sản phẩm, Tìm được giá tốt hơn..."></textarea>
+                <input type="hidden" id="cancelOrderId" value="">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-danger" onclick="submitCancelRequest()">
+                    Gửi yêu cầu hủy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+  function confirmReceived(orderId) {
+            if (confirm('Xác nhận bạn đã nhận được hàng?')) {
+                $.ajax({
+                    url: '@Url.Action("ConfirmReceived", "Order")',
+                    type: 'POST',
+                    data: {
+                        orderId: orderId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert('Có lỗi xảy ra: ' + xhr.responseText);
+                    }
+                });
+            }
+        }
+
+        function cancelOrder(orderId) {
+            if (confirm('Bạn có chắc muốn hủy đơn hàng này? Hành động này không thể hoàn tác.')) {
+                $.ajax({
+                    url: '@Url.Action("CancelOrder", "Order")',
+                    type: 'POST',
+                    data: {
+                        orderId: orderId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert('Có lỗi xảy ra khi hủy đơn hàng');
+                    }
+                });
+            }
+        }
+        function showCancelModal(orderId) {
+            $('#cancelOrderId').val(orderId);   
+            $('#cancellationReason').val('');
+            $('#cancelOrderModal').modal('show');
+        }
+
+        function submitCancelRequest() {
+            var orderId = $('#cancelOrderId').val();
+            var reason = $('#cancellationReason').val().trim();
+
+            if (!reason) {
+                alert('Vui lòng nhập lý do hủy đơn hàng');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("RequestCancelOrder", "Order")',
+                type: 'POST',
+                data: {
+                    orderId: orderId,
+                    reason: reason,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    $('#cancelOrderModal').modal('hide');
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('Lỗi: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Có lỗi xảy ra khi gửi yêu cầu');
+                }
+            });
+        }
+    </script>
+
+    @Html.AntiForgeryToken()
+}
+
+}

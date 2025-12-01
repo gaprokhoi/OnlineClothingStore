@@ -1,0 +1,389 @@
+@model List<ClothingStoreWebApp.Models.ShoppingCart>
+@{
+    ViewBag.Title = "Shopping Cart";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!--
+    Cart Index View - Display user's shopping cart
+    Purpose: Show all cart items with quantities, prices, and total
+    Team Note: Uses Bootstrap 5 for responsive design
+    Models: List of ShoppingCart items with ProductVariant, Product, Color, Size included
+-->
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-shopping-cart"></i> Your Shopping Cart
+            </h2>
+
+            @* Display success/error messages from TempData *@
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @* Check if cart is empty or has items *@
+            @if (Model == null || !Model.Any())
+            {
+                <!-- Empty Cart State -->
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-5x text-muted mb-3"></i>
+                    <h3 class="text-muted">Your cart is empty</h3>
+                    <p class="lead">Start shopping to add items to your cart!</p>
+                    @Html.ActionLink("Browse Products", "Index", "Product", null, new { @class = "btn btn-primary btn-lg" })
+                </div>
+            }
+            else
+            {
+                <!-- Cart Items Table -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Cart Items (@Model.Sum(m => m.Quantity) items)</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Size/Color</th>
+                                                <th>Price</th>
+                                                <th>Quantity</th>
+                                                <th>Total</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr id="cart-row-@item.CartID">
+                                                    <!-- Product Info Column -->
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <!-- Placeholder for product image - can be enhanced later -->
+                                                            <div class="me-3">
+                                                                <div class="bg-light rounded" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                                                    <i class="fas fa-image text-muted"></i>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-1">@item.ProductVariant.Product.ProductName</h6>
+                                                                <small class="text-muted">@item.ProductVariant.Product.Brand.BrandName</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+
+                                                    <!-- Size/Color Column -->
+                                                    <td>
+                                                        <span class="badge bg-secondary me-1">@item.ProductVariant.Size.SizeName</span>
+                                                        <span class="badge bg-info">@item.ProductVariant.Color.ColorName</span>
+                                                    </td>
+
+                                                    <!-- Price Column -->
+                                                    <td>
+                                                        <strong>$@item.ProductVariant.Price.ToString("F2")</strong>
+                                                    </td>
+
+                                                    <!-- Quantity Column with Update Controls -->
+                                                    <td>
+                                                        <div class="input-group" style="width: 130px;">
+                                                            <button class="btn btn-outline-secondary btn-sm quantity-btn"
+                                                                    type="button"
+                                                                    onclick="updateQuantity(@item.CartID, @(item.Quantity - 1))"
+                                                                    @(item.Quantity <= 1 ? "disabled" : "")>
+                                                                <i class="fas fa-minus"></i>
+                                                            </button>
+                                                            <input type="number"
+                                                                   class="form-control form-control-sm text-center quantity-input"
+                                                                   id="qty-@item.CartID"
+                                                                   value="@item.Quantity"
+                                                                   min="1"
+                                                                   onchange="updateQuantity(@item.CartID, this.value)">
+                                                            <button class="btn btn-outline-secondary btn-sm quantity-btn"
+                                                                    type="button"
+                                                                    onclick="updateQuantity(@item.CartID, @(item.Quantity + 1))">
+                                                                <i class="fas fa-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+
+                                                    <!-- Item Total Column -->
+                                                    <td>
+                                                        <strong id="item-total-@item.CartID">
+                                                            $@((item.Quantity * item.ProductVariant.Price).ToString("F2"))
+                                                        </strong>
+                                                    </td>
+
+                                                    <!-- Remove Action Column -->
+                                                    <td>
+                                                        <button class="btn btn-outline-danger btn-sm"
+                                                                onclick="removeItem(@item.CartID)"
+                                                                title="Remove item">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cart Actions -->
+                        <div class="mt-3">
+                            @Html.ActionLink("Continue Shopping", "Index", "Product", null, new { @class = "btn btn-outline-primary" })
+
+                            @using (Html.BeginForm("ClearCart", "Cart", FormMethod.Post, new { @class = "d-inline" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger ms-2"
+                                        onclick="return confirm('Are you sure you want to clear your cart?')">
+                                    <i class="fas fa-trash"></i> Clear Cart
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Cart Summary Sidebar -->
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Order Summary</h5>
+                            </div>
+                            <div class="card-body">
+                                @{
+                                    decimal subtotal = Model.Sum(m => m.Quantity * m.ProductVariant.Price);
+                                    decimal tax = subtotal * 0.08m; // 8% tax rate - can be configurable
+                                    decimal shipping = subtotal >= 50 ? 0 : 9.99m; // Free shipping over $50
+                                    decimal total = subtotal + tax + shipping;
+                                }
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal (@Model.Sum(m => m.Quantity) items):</span>
+                                    <strong id="cart-subtotal">$@subtotal.ToString("F2")</strong>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Tax:</span>
+                                    <span id="cart-tax">$@tax.ToString("F2")</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Shipping:</span>
+                                    <span id="cart-shipping">
+                                        @if (shipping == 0)
+                                        {
+                                            <span class="text-success">FREE</span>
+                                        }
+                                        else
+                                        {
+                                            <span>$@shipping.ToString("F2")</span>
+                                        }
+                                    </span>
+                                </div>
+
+                                @if (subtotal < 50 && subtotal > 0)
+                                {
+                                    <div class="alert alert-info py-2 px-3 small">
+                                        <i class="fas fa-info-circle"></i>
+                                        Add $@((50 - subtotal).ToString("F2")) more for free shipping!
+                                    </div>
+                                }
+
+                                <hr>
+
+                                <div class="d-flex justify-content-between mb-3">
+                                    <h5>Total:</h5>
+                                    <h5 id="cart-total">$@total.ToString("F2")</h5>
+                                </div>
+
+                                <!-- Checkout Button - Future implementation -->
+                                <button class="btn btn-success w-100 mb-2" disabled>
+                                    <i class="fas fa-credit-card"></i> Proceed to Checkout
+                                    <small class="d-block">(Coming Soon)</small>
+                                </button>
+
+                                <div class="text-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-shield-alt"></i> Secure checkout with SSL encryption
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shopping Benefits -->
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Why Shop With Us?</h6>
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-shipping-fast text-primary me-2"></i>Free shipping over $50</li>
+                                    <li><i class="fas fa-undo text-primary me-2"></i>30-day returns</li>
+                                    <li><i class="fas fa-shield-alt text-primary me-2"></i>Secure payments</li>
+                                    <li><i class="fas fa-headset text-primary me-2"></i>24/7 customer support</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* Include AJAX scripts for cart operations *@
+@section scripts {
+    <script>
+        // AJAX function to update item quantity
+        // Purpose: Update cart item quantity without page reload
+        // Parameters: cartId - ID of cart item, newQuantity - new quantity value
+        function updateQuantity(cartId, newQuantity) {
+            // Validate quantity is positive integer
+            newQuantity = parseInt(newQuantity);
+            if (newQuantity < 1) {
+                alert('Quantity must be at least 1');
+                return;
+            }
+
+            // Show loading state
+            $('#qty-' + cartId).prop('disabled', true);
+
+            // Send AJAX request to update quantity
+            $.ajax({
+                url: '@Url.Action("UpdateQuantity", "Cart")',
+                type: 'POST',
+                data: {
+                    cartId: cartId,
+                    quantity: newQuantity,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update UI with new values
+                        $('#qty-' + cartId).val(newQuantity);
+                        $('#item-total-' + cartId).text('$' + response.itemTotal.toFixed(2));
+                        $('#cart-total').text('$' + response.cartTotal.toFixed(2));
+
+                        // Update navigation cart count if function exists
+                        if (typeof updateNavCartCount === 'function') {
+                            updateNavCartCount(response.cartCount);
+                        }
+
+                        // Show success message
+                        showMessage('success', response.message);
+                    } else {
+                        // Show error message and revert quantity
+                        showMessage('error', response.message);
+                        location.reload(); // Reload to show correct quantities
+                    }
+                },
+                error: function() {
+                    showMessage('error', 'Failed to update quantity. Please try again.');
+                    location.reload();
+                },
+                complete: function() {
+                    // Re-enable quantity input
+                    $('#qty-' + cartId).prop('disabled', false);
+                }
+            });
+        }
+
+        // AJAX function to remove item from cart
+        // Purpose: Remove cart item without page reload
+        // Parameters: cartId - ID of cart item to remove
+        function removeItem(cartId) {
+            // Confirm removal
+            if (!confirm('Are you sure you want to remove this item from your cart?')) {
+                return;
+            }
+
+            // Show loading state
+            $('#cart-row-' + cartId).addClass('opacity-50');
+
+            // Send AJAX request to remove item
+            $.ajax({
+                url: '@Url.Action("RemoveItem", "Cart")',
+                type: 'POST',
+                data: {
+                    cartId: cartId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Remove item row with animation
+                        $('#cart-row-' + cartId).fadeOut(300, function() {
+                            $(this).remove();
+
+                            // Check if cart is now empty
+                            if ($('tbody tr').length === 0) {
+                                location.reload(); // Reload to show empty cart state
+                            }
+                        });
+
+                        // Update cart total
+                        $('#cart-total').text('$' + response.cartTotal.toFixed(2));
+
+                        // Update navigation cart count
+                        if (typeof updateNavCartCount === 'function') {
+                            updateNavCartCount(response.cartCount);
+                        }
+
+                        showMessage('success', response.message);
+                    } else {
+                        showMessage('error', response.message);
+                        $('#cart-row-' + cartId).removeClass('opacity-50');
+                    }
+                },
+                error: function() {
+                    showMessage('error', 'Failed to remove item. Please try again.');
+                    $('#cart-row-' + cartId).removeClass('opacity-50');
+                }
+            });
+        }
+
+        // Utility function to show messages
+        // Purpose: Display success/error messages to user
+        function showMessage(type, message) {
+            var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                           message +
+                           '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+
+            // Insert message at top of container
+            $('.container .row .col-12').prepend(alertHtml);
+
+            // Auto-hide after 3 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 3000);
+        }
+
+        // Add anti-forgery token to AJAX requests
+        $(document).ready(function() {
+            // Add CSRF token to all AJAX requests
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (settings.type !== 'GET') {
+                        xhr.setRequestHeader("RequestVerificationToken",
+                            $('input[name="__RequestVerificationToken"]').val());
+                    }
+                }
+            });
+        });
+    </script>
+}

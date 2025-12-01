@@ -1,0 +1,795 @@
+﻿@model IEnumerable<ClothingStoreWebApp.Models.Product>
+@{
+    ViewBag.Title = "Sản phẩm";
+}
+
+<style>
+    :root {
+        --lv-brown: #5e3a1f;
+        --lv-gold: #c9a961;
+        --lv-black: #1a1a1a;
+        --lv-cream: #f5f3f0;
+        --lv-white: #ffffff;
+    }
+
+    body {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        background-color: var(--lv-white);
+        color: var(--lv-black);
+        letter-spacing: 0.02em;
+    }
+
+    /* Hero Section */
+    .lv-hero {
+        background-color: var(--lv-cream);
+        padding: 60px 0 40px;
+        text-align: center;
+        border-bottom: 1px solid #e0ddd8;
+        margin-bottom: 0;
+    }
+
+        .lv-hero h2 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .lv-hero .hero-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            letter-spacing: 0.05em;
+            font-weight: 300;
+        }
+
+    .admin-controls {
+        margin-top: 20px;
+    }
+
+        .admin-controls .btn {
+            border: 1px solid var(--lv-black);
+            padding: 10px 30px;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 400;
+            background: transparent;
+            color: var(--lv-black);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .admin-controls .btn:hover {
+                background: var(--lv-black);
+                color: var(--lv-white);
+            }
+
+    /* Filter Section */
+    .lv-filter-section {
+        background-color: var(--lv-white);
+        padding: 30px 0;
+        border-bottom: 1px solid #e0ddd8;
+        
+    }
+
+    .lv-filter-card {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 40px;
+        border: none;
+        box-shadow: none;
+    }
+
+    .lv-filter-row {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+        .lv-filter-row .col-md-3,
+        .lv-filter-row .col-md-4,
+        .lv-filter-row .col-md-2 {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .lv-filter-row .form-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 400;
+        }
+
+        .lv-filter-row .form-select,
+        .lv-filter-row .form-control {
+            border: 1px solid var(--lv-black);
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            border-radius: 0;
+            background-color: var(--lv-white);
+        }
+
+        .lv-filter-row .btn-primary {
+            background-color: var(--lv-black);
+            border: 1px solid var(--lv-black);
+            padding: 12px 30px;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 400;
+            border-radius: 0;
+            width: 100%;
+        }
+
+            .lv-filter-row .btn-primary:hover {
+                background-color: transparent;
+                color: var(--lv-black);
+            }
+
+    /* Results Bar */
+    .lv-results-bar {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 30px 40px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .lv-results-bar .text-muted {
+            font-size: 0.85rem;
+            color: #666;
+            letter-spacing: 0.05em;
+        }
+
+        .lv-results-bar .dropdown-toggle {
+            background: transparent;
+            border: 1px solid var(--lv-black);
+            color: var(--lv-black);
+            padding: 10px 25px;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 400;
+            border-radius: 0;
+        }
+
+        .lv-results-bar .dropdown-menu {
+            border-radius: 0;
+            border: 1px solid var(--lv-black);
+        }
+
+        .lv-results-bar .dropdown-item {
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            padding: 12px 20px;
+            text-decoration: none;
+            color: var(--lv-black);
+        }
+
+            .lv-results-bar .dropdown-item:hover {
+                background-color: var(--lv-black);
+                color: var(--lv-white);
+            }
+
+    /* Product Grid */
+    .lv-products-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 40px 40px 60px;
+    }
+
+    .lv-product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 60px 40px;
+    }
+
+    /* Product Card */
+    .lv-product-card {
+        text-align: left;
+        cursor: pointer;
+        position: relative;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .lv-image-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 3/4;
+        overflow: hidden;
+        background-color: var(--lv-cream);
+        margin-bottom: 20px;
+    }
+
+    .lv-product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .lv-product-card:hover .lv-product-image {
+        transform: scale(1.05);
+    }
+
+    .lv-no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--lv-cream);
+    }
+
+    .lv-featured-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background-color: var(--lv-gold);
+        color: var(--lv-white);
+        padding: 5px 15px;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-weight: 500;
+        border: none;
+        border-radius: 0;
+        z-index: 2;
+    }
+
+    .lv-card-body {
+        padding: 0 5px;
+    }
+
+    .lv-category {
+        font-size: 0.75rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+        font-weight: 400;
+    }
+
+    .lv-product-title {
+        font-size: 1rem;
+        color: var(--lv-black);
+        margin-bottom: 12px;
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        line-height: 1.4;
+        min-height: 2.8em;
+    }
+
+    .lv-description {
+        display: none;
+    }
+
+    .lv-product-price {
+        font-size: 0.95rem;
+        color: var(--lv-black);
+        font-weight: 400;
+        letter-spacing: 0.05em;
+        margin-bottom: 15px;
+    }
+
+    .lv-product-meta {
+        font-size: 0.8rem;
+        color: #999;
+        margin-bottom: 15px;
+    }
+
+    .lv-product-cta {
+        display: flex;
+        gap: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .lv-product-card:hover .lv-product-cta {
+        opacity: 1;
+    }
+
+    .lv-btn-details {
+        flex: 1;
+        background-color: transparent;
+        color: var(--lv-black);
+        border: 1px solid var(--lv-black);
+        padding: 12px 20px;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 400;
+        border-radius: 0;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+        .lv-btn-details:hover {
+            background-color: var(--lv-black);
+            color: var(--lv-white);
+        }
+
+    /* ✅ NEW WISHLIST BUTTON STYLES */
+    .btn-wishlist-small {
+        width: 40px;
+        height: 40px;
+        border: 1px solid var(--lv-black);
+        background: var(--lv-white);
+        border-radius: 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #dc3545;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+        .btn-wishlist-small:hover {
+            border-color: #dc3545;
+            background: #dc3545;
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .btn-wishlist-small.active {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: #fff;
+        }
+
+            .btn-wishlist-small.active i {
+                animation: heartBeat 0.3s ease;
+            }
+
+    keyframes heartBeat {
+        0%, 100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.3);
+        }
+    }
+
+    /* Pagination */
+    .lv-pagination-container {
+        text-align: center;
+        padding: 60px 0;
+        border-top: 1px solid #e0ddd8;
+        margin-top: 40px;
+    }
+
+    .lv-pagination {
+        display: inline-flex;
+        gap: 5px;
+        align-items: center;
+        padding-left: 0;
+    }
+
+        .lv-pagination .page-item {
+            list-style: none;
+        }
+
+        .lv-pagination .page-link {
+            background: transparent;
+            border: 1px solid #e0ddd8;
+            color: var(--lv-black);
+            padding: 10px 18px;
+            font-size: 0.85rem;
+            min-width: 45px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 0;
+            display: block;
+        }
+
+            .lv-pagination .page-link:hover,
+            .lv-pagination .page-item.active .page-link {
+                background-color: var(--lv-black);
+                color: var(--lv-white);
+                border-color: var(--lv-black);
+            }
+
+    /* Toast Styles */
+    .custom-toast {
+        animation: slideInRight 0.3s ease;
+    }
+
+    keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<div class="lv-hero">
+    <h2>
+        <i class="fas fa-tshirt"></i>
+        Bộ Sưu Tập
+    </h2>
+    <p class="hero-subtitle">Khám phá những sản phẩm thời trang cao cấp</p>
+
+    @if (Session["Role"] != null && Session["Role"].ToString() == "Admin")
+    {
+        <div class="admin-controls">
+            @Html.ActionLink("Quản lý sản phẩm", "Index", "Admin", null, new { @class = "btn btn-warning" })
+        </div>
+    }
+</div>
+
+@* Filters Section *@
+@using (Html.BeginForm("Index", "Product", FormMethod.Get, new { @class = "lv-filter-section" }))
+{
+    <div class="lv-filter-card">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label class="form-label">Danh mục gốc</label>
+                @Html.DropDownList("parentCategoryId", ViewBag.ParentCategoryId as SelectList, "-- Tất cả --", new { @class = "form-select", @id = "parentCategorySelect" })
+            </div>
+
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label class="form-label">Danh mục con</label>
+                @Html.DropDownList("categoryId", ViewBag.CategoryId as SelectList, "-- Tất cả --", new { @class = "form-select", @id = "categorySelect" })
+            </div>
+
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <label class="form-label">Thương hiệu</label>
+                @Html.DropDownList("brandId", ViewBag.BrandId as SelectList, "-- Tất cả --", new { @class = "form-select" })
+            </div>
+
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <label class="form-label">Tìm kiếm</label>
+                <div class="input-group">
+                    <input type="text" name="searchTerm" value="@Request.QueryString["searchTerm"]" class="form-control" placeholder="Tìm kiếm sản phẩm..." />
+                    <button type="submit" class="btn btn-outline-dark">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter"></i> Tìm
+                </button>
+            </div>
+
+            <div class="col-lg-1 col-md-3 col-sm-6">
+                <a href="@Url.Action("Index", "Product")" class="btn btn-outline-dark w-100" title="Reset Filters">
+                    <i class="fas fa-redo"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+@* Results Summary *@
+<div class="lv-results-bar">
+    <span class="text-muted">
+        @ViewBag.TotalProducts SẢN PHẨM
+        @if (ViewBag.CurrentPage > 1)
+        {
+            <span>• TRANG @ViewBag.CurrentPage/@ViewBag.TotalPages</span>
+        }
+    </span>
+
+    <div class="dropdown">
+        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="fas fa-sort"></i> Sắp xếp
+        </button>
+        <ul class="dropdown-menu">
+            <li>@Html.ActionLink("Tên A-Z", "Index", new { sortBy = "name", parentCategoryId = Request.QueryString["parentCategoryId"], categoryId = Request.QueryString["categoryId"], brandId = Request.QueryString["brandId"], searchTerm = Request.QueryString["searchTerm"] }, new { @class = "dropdown-item" })</li>
+            <li>@Html.ActionLink("Giá thấp đến cao", "Index", new { sortBy = "price_asc", parentCategoryId = Request.QueryString["parentCategoryId"], categoryId = Request.QueryString["categoryId"], brandId = Request.QueryString["brandId"], searchTerm = Request.QueryString["searchTerm"] }, new { @class = "dropdown-item" })</li>
+            <li>@Html.ActionLink("Giá cao đến thấp", "Index", new { sortBy = "price_desc", parentCategoryId = Request.QueryString["parentCategoryId"], categoryId = Request.QueryString["categoryId"], brandId = Request.QueryString["brandId"], searchTerm = Request.QueryString["searchTerm"] }, new { @class = "dropdown-item" })</li>
+            <li>@Html.ActionLink("Mới nhất", "Index", new { sortBy = "newest", parentCategoryId = Request.QueryString["parentCategoryId"], categoryId = Request.QueryString["categoryId"], brandId = Request.QueryString["brandId"], searchTerm = Request.QueryString["searchTerm"] }, new { @class = "dropdown-item" })</li>
+        </ul>
+    </div>
+</div>
+
+@* Product Grid *@
+<div class="lv-products-container">
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <p class="lead text-muted">Không tìm thấy sản phẩm nào phù hợp.</p>
+        </div>
+    }
+    else
+    {
+        <div class="lv-product-grid">
+            @foreach (var item in Model)
+            {
+                <div class="lv-product-card">
+                    <div class="lv-image-wrapper">
+                        <a href="@Url.Action("Details", "Product", new { id = item.ProductID })">
+                            @if (item.ProductImages != null && item.ProductImages.Any())
+                            {
+                                var primaryImage = item.ProductImages.OrderBy(pi => pi.SortOrder).FirstOrDefault();
+                                <img src="@primaryImage.ImageURL" class="lv-product-image" alt="@item.ProductName">
+                            }
+                            else
+                            {
+                                <div class="lv-no-image">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>
+                            }
+                        </a>
+
+                        @if (item.IsFeatured)
+                        {
+                            <span class="badge lv-featured-badge">
+                                <i class="fas fa-star"></i> Nổi bật
+                            </span>
+                        }
+                    </div>
+
+                    <div class="lv-card-body">
+                        <div class="lv-category">
+                            @if (item.Category != null)
+                            {
+                                if (item.Category.ParentCategory != null)
+                                {
+                                    <text>@item.Category.ParentCategory.CategoryName > @item.Category.CategoryName</text>
+                                }
+                                else
+                                {
+                                    <text>@item.Category.CategoryName</text>
+                                }
+                            }
+                            @(item.Brand != null ? "• " + item.Brand.BrandName : "")
+                        </div>
+
+                        <h6 class="lv-product-title">
+                            <a href="@Url.Action("Details", "Product", new { id = item.ProductID })" class="text-dark text-decoration-none">@item.ProductName</a>
+                        </h6>
+
+                        <div class="lv-product-price">@item.BasePrice.ToString("N0") ₫</div>
+
+                        <div class="lv-product-meta text-muted">@item.Gender</div>
+
+                        <div class="lv-product-cta">
+                            @Html.ActionLink("Chi tiết", "Details", new { id = item.ProductID }, new { @class = "lv-btn-details" })
+                            <button type="button"
+                                    class="btn-wishlist-small"
+                                    onclick="toggleWishlist(@item.ProductID, this)"
+                                    data-product-id="@item.ProductID"
+                                    title="Thêm vào yêu thích">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @* Pagination *@
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="lv-pagination-container">
+            <ul class="lv-pagination">
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        @Html.ActionLink("←", "Index", new { page = ViewBag.CurrentPage - 1, parentCategoryId = Request.QueryString["parentCategoryId"], categoryId = Request.QueryString["categoryId"], brandId = Request.QueryString["brandId"], searchTerm = Request.QueryString["searchTerm"], sortBy = Request.QueryString["sortBy"] }, new { @class = "page-link" })
+                    </li>
+                }
+
+                @for (int i = StartPage(ViewBag.CurrentPage, ViewBag.TotalPages); i <= EndPage(ViewBag.CurrentPage, ViewBag.TotalPages); i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        @Html.ActionLink(i.ToString(), "Index", new { page = i, parentCategoryId = Request.QueryString["parentCategoryId"], categoryId = Request.QueryString["categoryId"], brandId = Request.QueryString["brandId"], searchTerm = Request.QueryString["searchTerm"], sortBy = Request.QueryString["sortBy"] }, new { @class = "page-link" })
+                    </li>
+                }
+
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <li class="page-item">
+                        @Html.ActionLink("→", "Index", new { page = ViewBag.CurrentPage + 1, parentCategoryId = Request.QueryString["parentCategoryId"], categoryId = Request.QueryString["categoryId"], brandId = Request.QueryString["brandId"], searchTerm = Request.QueryString["searchTerm"], sortBy = Request.QueryString["sortBy"] }, new { @class = "page-link" })
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+@Html.AntiForgeryToken()
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+@section Scripts {
+    <script>
+        // Dependent category dropdowns
+        $('#parentCategorySelect').change(function () {
+            var parentCategoryId = $(this).val();
+            var categorySelect = $('#categorySelect');
+
+            categorySelect.prop('disabled', true);
+
+            if (parentCategoryId) {
+                $.getJSON('@Url.Action("GetSubCategories", "Product")', { parentId: parentCategoryId }, function (data) {
+                    categorySelect.empty();
+                    categorySelect.append('<option value="">-- Tất cả --</option>');
+                    if (data.length > 0) {
+                        $.each(data, function (index, item) {
+                            categorySelect.append('<option value="' + item.CategoryID + '">' + item.CategoryName + '</option>');
+                        });
+                        categorySelect.prop('disabled', false);
+                    } else {
+                        categorySelect.append('<option value="" disabled>-- Không có danh mục con --</option>');
+                    }
+
+                    var currentCategoryId = '@Request.QueryString["categoryId"]';
+                    if (currentCategoryId) {
+                        categorySelect.val(currentCategoryId);
+                    }
+
+                }).fail(function () {
+                    console.error("Failed to load subcategories.");
+                    categorySelect.empty();
+                    categorySelect.append('<option value="">-- Lỗi tải dữ liệu --</option>');
+                });
+            } else {
+                categorySelect.empty();
+                categorySelect.append('<option value="">-- Tất cả --</option>');
+                categorySelect.prop('disabled', false);
+            }
+        });
+
+        if ($('#parentCategorySelect').val()) {
+            $('#parentCategorySelect').trigger('change');
+        } else {
+            $('#categorySelect').prop('disabled', false);
+        }
+    </script>
+}
+
+<script>
+    // ✅ NEW WISHLIST TOGGLE FUNCTION
+    function toggleWishlist(productId, button) {
+        $.ajax({
+            url: '@Url.Action("Toggle", "Wishlist")',
+            type: 'POST',
+            data: {
+                productId: productId,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function (response) {
+                if (response.success) {
+                    if (response.inWishlist) {
+                        $(button).addClass('active');
+                        showToast('success', response.message);
+                    } else {
+                        $(button).removeClass('active');
+                        showToast('info', response.message);
+                    }
+
+                    $('.wishlist-count').text(response.wishlistCount);
+                } else if (response.requireLogin) {
+                    showToast('error', 'Vui lòng đăng nhập để sử dụng tính năng này!');
+                    setTimeout(function () {
+                        window.location.href = '@Url.Action("Login", "User")';
+                    }, 1500);
+                } else {
+                    showToast('error', response.message);
+                }
+            },
+            error: function () {
+                showToast('error', 'Có lỗi xảy ra!');
+            }
+        });
+    }
+
+    function showToast(type, message) {
+        var bgColor = {
+            'success': '#28a745',
+            'error': '#dc3545',
+            'info': '#17a2b8'
+        }[type] || '#6c757d';
+
+        var icon = {
+            'success': 'check-circle',
+            'error': 'exclamation-circle',
+            'info': 'info-circle'
+        }[type] || 'bell';
+
+        var toast = $('<div class="custom-toast"></div>')
+            .css({
+                'position': 'fixed',
+                'top': '20px',
+                'right': '20px',
+                'background': bgColor,
+                'color': 'white',
+                'padding': '15px 25px',
+                'border-radius': '8px',
+                'box-shadow': '0 4px 12px rgba(0,0,0,0.3)',
+                'z-index': '9999',
+                'display': 'flex',
+                'align-items': 'center',
+                'gap': '10px',
+                'font-weight': '500',
+                'max-width': '350px'
+            })
+            .html('<i class="fas fa-' + icon + '"></i>' + message);
+
+        $('body').append(toast);
+
+        setTimeout(function () {
+            toast.fadeOut(300, function () { $(this).remove(); });
+        }, 3000);
+    }
+
+    // Update cart count
+    function updateCartCount() {
+        $.get('@Url.Action("GetCartCount", "Cart")', function (data) {
+            var count = data.cartCount || 0;
+            $('.cart-count-badge').text(count).toggle(count > 0);
+        }).fail(function () {
+            console.log('Could not update cart count');
+            $('.cart-count-badge').hide();
+        });
+    }
+
+    $(document).ready(function () {
+        updateCartCount();
+    });
+    // ✅ FORCE NAVBAR DROPDOWN WORK
+    $(document).on('click', '.dropdown-menu', function (e) {
+        e.stopPropagation(); // Không propagate
+    });
+
+    $(document).on('click', '[data-bs-toggle="dropdown"]', function (e) {
+        e.stopPropagation(); // Không block dropdown toggle
+        $(this).dropdown('toggle'); // Toggle dropdown
+    });
+
+    // ✅ Fix để dropdown hiển thị phía trên
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        menu.style.zIndex = '2000';
+    });
+</script>
+
+@functions {
+    public static int StartPage(int currentPage, int totalPages, int maxPagesToShow = 5)
+    {
+        int halfPagesToShow = maxPagesToShow / 2;
+        int startPage = currentPage - halfPagesToShow;
+
+        if (startPage < 1) startPage = 1;
+
+        if (totalPages > maxPagesToShow && startPage + maxPagesToShow - 1 > totalPages)
+        {
+            startPage = totalPages - maxPagesToShow + 1;
+        }
+        return startPage;
+    }
+
+    public static int EndPage(int currentPage, int totalPages, int maxPagesToShow = 5)
+    {
+        int startPage = StartPage(currentPage, totalPages, maxPagesToShow);
+        int endPage = startPage + maxPagesToShow - 1;
+
+        if (endPage > totalPages) endPage = totalPages;
+
+        return endPage;
+    }
+
+}

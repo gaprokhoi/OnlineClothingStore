@@ -1,0 +1,513 @@
+﻿@* Admin Dashboard - Không cần model, dùng ViewBag *@
+
+@{
+    ViewBag.Title = "Admin Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">
+        <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+    </h2>
+
+    <!-- ===== DASHBOARD STATISTICS ===== -->
+    <div class="row mb-4">
+        <!-- Revenue Cards -->
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Doanh thu hôm nay</h6>
+                            <h3 class="mb-0">@string.Format("{0:N0}₫", ViewBag.TodayRevenue)</h3>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Doanh thu tháng này</h6>
+                            <h3 class="mb-0">@string.Format("{0:N0}₫", ViewBag.MonthRevenue)</h3>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Doanh thu năm nay</h6>
+                            <h3 class="mb-0">@string.Format("{0:N0}₫", ViewBag.YearRevenue)</h3>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-dark text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Tổng doanh thu</h6>
+                            <h3 class="mb-0">@string.Format("{0:N0}₫", ViewBag.TotalRevenue)</h3>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Status Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2 mb-3">
+            <div class="card border-warning h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.PendingOrdersCount</h4>
+                    <small class="text-muted">Chờ duyệt</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2 mb-3">
+            <div class="card border-info h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-cog fa-2x text-info mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.ProcessingOrdersCount</h4>
+                    <small class="text-muted">Đang xử lý</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2 mb-3">
+            <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-shipping-fast fa-2x text-primary mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.ShippedOrdersCount</h4>
+                    <small class="text-muted">Đang giao</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2 mb-3">
+            <div class="card border-success h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.DeliveredOrdersCount</h4>
+                    <small class="text-muted">Đã giao</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2 mb-3">
+            <div class="card border-danger h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.CancelledOrdersCount</h4>
+                    <small class="text-muted">Đã hủy</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2 mb-3">
+            <div class="card border-secondary h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-list fa-2x text-secondary mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.TotalOrders</h4>
+                    <small class="text-muted">Tổng đơn</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product & Inventory Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="fas fa-box fa-2x text-primary mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.TotalProducts</h4>
+                    <small class="text-muted">Sản phẩm hoạt động</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.LowStockCount</h4>
+                    <small class="text-muted">Sắp hết hàng (&lt;20)</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="fas fa-ban fa-2x text-danger mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.OutOfStockCount</h4>
+                    <small class="text-muted">Hết hàng</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x text-success mb-2"></i>
+                    <h4 class="mb-0">@ViewBag.TotalCustomers</h4>
+                    <small class="text-muted">Khách hàng</small>
+                    <div class="mt-1">
+                        <small class="text-success">+@ViewBag.NewCustomersThisMonth mới tháng này</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Selling Products & Low Stock -->
+    <div class="row mb-4">
+        <!-- Top Selling Products -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-fire"></i> Top 5 Sản Phẩm Bán Chạy
+                </div>
+                <div class="card-body">
+                    @{
+                        var topProducts = ViewBag.TopSellingProducts as List<ClothingStoreWebApp.Models.TopSellingProductViewModel>;
+                    }
+
+                    @if (topProducts != null && topProducts.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-center">Đã bán</th>
+                                        <th class="text-end">Doanh thu</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var product in topProducts)
+                                    {
+                                        <tr>
+                                            <td>@product.ProductName</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-success">@product.TotalQuantity</span>
+                                            </td>
+                                            <td class="text-end">@string.Format("{0:N0}₫", product.TotalRevenue)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">Chưa có dữ liệu bán hàng</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-exclamation-triangle"></i> Cảnh Báo Tồn Kho Thấp
+                </div>
+                <div class="card-body">
+                    @{
+                        var lowStockProducts = ViewBag.LowStockProducts as List<ClothingStoreWebApp.Models.LowStockProductViewModel>;
+                    }
+
+                    @if (lowStockProducts != null && lowStockProducts.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Biến thể</th>
+                                        <th class="text-center">Còn lại</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in lowStockProducts)
+                                    {
+                                        <tr>
+                                            <td>@item.ProductName</td>
+                                            <td>
+                                                <small>@item.Color - @item.Size</small><br />
+                                                <small class="text-muted">@item.SKU</small>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge @(item.Available <= 0 ? "bg-danger" : item.Available < 10 ? "bg-warning text-dark" : "bg-info")">
+                                                    @item.Available
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-2">
+                            <a href="@Url.Action("ManageInventory", "Admin", new { lowStockOnly = true })" class="btn btn-sm btn-warning">
+                                Xem tất cả <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-success text-center py-3">
+                            <i class="fas fa-check-circle"></i> Tất cả sản phẩm đều đủ hàng
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-shopping-cart"></i> Đơn Hàng Gần Đây</span>
+                    <a href="@Url.Action("ManageOrders", "Admin")" class="btn btn-sm btn-light">Xem tất cả</a>
+                </div>
+                <div class="card-body">
+                    @{
+                        var recentOrders = ViewBag.RecentOrders as List<ClothingStoreWebApp.Models.RecentOrderViewModel>;
+                    }
+
+                    @if (recentOrders != null && recentOrders.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Khách hàng</th>
+                                        <th>Ngày đặt</th>
+                                        <th class="text-end">Tổng tiền</th>
+                                        <th class="text-center">Trạng thái</th>
+                                        <th class="text-center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in recentOrders)
+                                    {
+                                        <tr>
+                                            <td><strong>@order.OrderNumber</strong></td>
+                                            <td>@order.CustomerName</td>
+                                            <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td class="text-end">@string.Format("{0:N0}₫", order.TotalAmount)</td>
+                                            <td class="text-center">
+                                                <span class="badge @(
+                                                    order.StatusName == "Pending" ? "bg-warning text-dark" :
+                                                    order.StatusName == "Processing" ? "bg-info" :
+                                                    order.StatusName == "Shipped" ? "bg-primary" :
+                                                    order.StatusName == "Delivered" ? "bg-success" :
+                                                    "bg-danger"
+                                                )">
+                                                    @order.StatusName
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="@Url.Action("OrderDetails", "Admin", new { id = order.OrderID })"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">Chưa có đơn hàng nào</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-bolt text-warning"></i> Thao Tác Nhanh</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <a href="@Url.Action("Create", "Product")" class="btn btn-success w-100 py-3">
+                                <i class="fas fa-plus fa-2x d-block mb-2"></i>
+                                <small>Thêm sản phẩm</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <a href="@Url.Action("Index", "Category")" class="btn btn-primary w-100 py-3">
+                                <i class="fas fa-tags fa-2x d-block mb-2"></i>
+                                <small>Danh mục</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <a href="@Url.Action("Index", "Brand")" class="btn btn-info w-100 py-3">
+                                <i class="fas fa-trademark fa-2x d-block mb-2"></i>
+                                <small>Thương hiệu</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <a href="@Url.Action("ManageOrders", "Admin")" class="btn btn-warning w-100 py-3">
+                                <i class="fas fa-shopping-cart fa-2x d-block mb-2"></i>
+                                <small>Đơn hàng</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <a href="@Url.Action("ProductList", "Admin")" class="btn btn-dark w-100 py-3">
+                                <i class="fas fa-box fa-2x d-block mb-2"></i>
+                                <small>Sản phẩm</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-sm-4 col-6">
+                            <a href="@Url.Action("ManageInventory", "Admin")" class="btn btn-secondary w-100 py-3 position-relative">
+                                <i class="fas fa-warehouse fa-2x d-block mb-2"></i>
+                                <small>Kho hàng</small>
+                                @if (ViewBag.LowStockCount > 0)
+                                {
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        @ViewBag.LowStockCount
+                                    </span>
+                                }
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@* Custom CSS *@
+<style>
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 25px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        transition: all 0.2s ease;
+    }
+</style>
+
+@* Scripts *@
+<script>
+    function showSuccessNotification(message) {
+        var notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease;';
+        notification.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + message;
+        document.body.appendChild(notification);
+        setTimeout(function() {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(function() { notification.remove(); }, 300);
+        }, 3000);
+    }
+
+    function showErrorNotification(message) {
+        var notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease;';
+        notification.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + message;
+        document.body.appendChild(notification);
+        setTimeout(function() {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(function() { notification.remove(); }, 300);
+        }, 3000);
+    }
+
+    function showInfoNotification(message) {
+        var notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #17a2b8; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; animation: slideIn 0.3s ease;';
+        notification.innerHTML = '<i class="fas fa-info-circle me-2"></i>' + message;
+        document.body.appendChild(notification);
+        setTimeout(function() {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(function() { notification.remove(); }, 300);
+        }, 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var successMessage = '@TempData["SuccessMessage"]';
+        var errorMessage = '@TempData["ErrorMessage"]';
+        var infoMessage = '@TempData["InfoMessage"]';
+
+        if (successMessage && successMessage.trim() !== '') {
+            showSuccessNotification(successMessage);
+        }
+        if (errorMessage && errorMessage.trim() !== '') {
+            showErrorNotification(errorMessage);
+        }
+        if (infoMessage && infoMessage.trim() !== '') {
+            showInfoNotification(infoMessage);
+        }
+    });
+
+    setInterval(() => {
+        location.reload();
+    }, 300000);
+</script>

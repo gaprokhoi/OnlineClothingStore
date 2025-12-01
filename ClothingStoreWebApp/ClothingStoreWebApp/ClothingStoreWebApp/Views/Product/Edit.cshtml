@@ -1,0 +1,457 @@
+﻿@model ClothingStoreWebApp.Models.Product
+@{
+    ViewBag.Title = "Chỉnh sửa - " + Model.ProductName;
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-edit text-warning"></i>
+            Chỉnh sửa sản phẩm
+        </h2>
+        <div>
+            @Html.ActionLink("Xem chi tiết", "Details", new { id = Model.ProductID }, new { @class = "btn btn-info" })
+            @Html.ActionLink("Quay lại", "Index", "Admin", null, new { @class = "btn btn-secondary" })
+        </div>
+    </div>
+
+    @using (Html.BeginForm("Edit", "Product", FormMethod.Post, new { @class = "row", enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.ProductID)
+        @Html.HiddenFor(model => model.CreatedAt)
+        @Html.HiddenFor(model => model.UpdatedAt)
+
+@* Edit Form Section *@
+<div class="col-md-8">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0">
+                <i class="fas fa-info-circle"></i> Thông tin cơ bản
+            </h6>
+        </div>
+        <div class="card-body">
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.ProductName, new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.ProductName, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ProductName, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.Description, new { @class = "form-label" })
+                @Html.TextAreaFor(model => model.Description, new { @class = "form-control", rows = 4 })
+                @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.CategoryID, "Danh mục", new { @class = "form-label" })
+                    <select name="CategoryID" class="form-select">
+                        <option value="">-- Chọn danh mục --</option>
+                        @foreach (var item in (SelectList)ViewBag.CategoryID)
+                        {
+                            <option value="@item.Value" @(item.Selected ? "selected" : "")>@item.Text</option>
+                        }
+                    </select>
+                    @Html.ValidationMessageFor(model => model.CategoryID, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.BrandID, "Thương hiệu", new { @class = "form-label" })
+                    <select name="BrandID" class="form-select">
+                        <option value="">-- Chọn thương hiệu --</option>
+                        @foreach (var item in (SelectList)ViewBag.BrandID)
+                        {
+                            <option value="@item.Value" @(item.Selected ? "selected" : "")>@item.Text</option>
+                        }
+                    </select>
+                    @Html.ValidationMessageFor(model => model.BrandID, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.CollectionID, "Bộ sưu tập", new { @class = "form-label" })
+                    <select name="CollectionID" class="form-select">
+                        <option value="">-- Chọn bộ sưu tập (tùy chọn) --</option>
+                        @foreach (var item in (SelectList)ViewBag.CollectionID)
+                        {
+                            <option value="@item.Value" @(item.Selected ? "selected" : "")>@item.Text</option>
+                        }
+                    </select>
+                    @Html.ValidationMessageFor(model => model.CollectionID, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-6 mb-3">
+                    @Html.LabelFor(model => model.Gender, "Giới tính", new { @class = "form-label" })
+                    @Html.DropDownListFor(model => model.Gender, new SelectList(new[] { "Nam", "Nữ", "Unisex" }, Model.Gender), "-- Chọn giới tính --", new { @class = "form-select" })
+                    @Html.ValidationMessageFor(model => model.Gender, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.Material, "Chất liệu", new { @class = "form-label" })
+                @Html.TextBoxFor(model => model.Material, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Material, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(model => model.CareInstructions, "Hướng dẫn bảo quản", new { @class = "form-label" })
+                @Html.TextAreaFor(model => model.CareInstructions, new { @class = "form-control", rows = 2 })
+                @Html.ValidationMessageFor(model => model.CareInstructions, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    @* Current Images *@
+    @if (Model.ProductImages != null && Model.ProductImages.Any())
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-images"></i> Hình ảnh hiện tại
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @foreach (var img in Model.ProductImages.OrderBy(pi => pi.SortOrder))
+                    {
+                        <div class="col-md-3">
+                            <div class="card">
+                                <img src="@img.ImageURL" class="card-img-top" style="height: 120px; object-fit: cover;">
+                                <div class="card-body p-2 text-center">
+                                    <small class="text-muted">@img.ImageType</small>
+                                    @if (img.SortOrder == 0)
+                                    {
+                                        <br><span class="badge bg-success">Ảnh chính</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="mt-3">
+                    <small class="text-info">
+                        <i class="fas fa-info-circle"></i>
+                        Để thay đổi ảnh, hãy upload ảnh mới bên dưới. Ảnh cũ sẽ được thay thế.
+                    </small>
+                </div>
+            </div>
+        </div>
+    }
+    @*@ Size và Color Management Section *@
+    @* Replace the existing Size và Color Management Section with this improved version *@
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0">
+                <i class="fas fa-palette"></i> Quản lý Size và Màu sắc
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label"><strong>Size có sẵn:</strong></label>
+                    <div class="size-selection">
+                        @if (ViewBag.AllSizes != null)
+                        {
+                            foreach (var size in ViewBag.AllSizes as List<ClothingStoreWebApp.Models.Size>)
+                            {
+                                bool isSelected = ViewBag.SelectedSizes != null && ((int[])ViewBag.SelectedSizes).Contains(size.SizeID);
+                                <div class="form-check form-check-inline">
+                                    <input type="checkbox" name="SelectedSizes" value="@size.SizeID"
+                                           class="form-check-input size-checkbox" id="size_@size.SizeID" @(isSelected ? "checked" : "")>
+                                    <label class="form-check-label size-label" for="size_@size.SizeID">
+                                        <span class="size-badge @(isSelected ? "selected" : "")">@size.SizeName</span>
+                                    </label>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label"><strong>Màu sắc có sẵn:</strong></label>
+                    <div class="color-selection row">
+                        @if (ViewBag.AllColors != null)
+                        {
+                            foreach (var color in ViewBag.AllColors as List<ClothingStoreWebApp.Models.Color>)
+                            {
+                                bool isSelected = ViewBag.SelectedColors != null && ((int[])ViewBag.SelectedColors).Contains(color.ColorID);
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-check color-item">
+                                        <input type="checkbox" name="SelectedColors" value="@color.ColorID"
+                                               class="form-check-input" id="color_@color.ColorID" @(isSelected ? "checked" : "")>
+                                        <label class="form-check-label d-flex align-items-center" for="color_@color.ColorID">
+                                            <span class="color-preview me-2" style="background-color: @color.ColorCode;"></span>
+                                            <span class="color-name">@color.ColorName</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-info-circle"></i>
+                <strong>Lưu ý:</strong> Chọn Size và Color để tự động tạo các ProductVariant.
+                Nếu không chọn gì, hệ thống sẽ tạo variant mặc định.
+            </div>
+        </div>
+    </div>
+
+    <style>
+    /* Size Selection Styles */
+    .size-selection {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .size-checkbox {
+        display: none;
+    }
+
+    .size-label {
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .size-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        background-color: #fff;
+        color: #495057;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .size-badge:hover {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+    }
+
+    .size-checkbox:checked + .size-label .size-badge,
+    .size-badge.selected {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Color Selection Styles */
+    .color-selection {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .color-item {
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .color-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(3px);
+    }
+
+    .form-check-input:checked ~ .form-check-label {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+
+    .color-preview {
+        width: 28px;
+        height: 28px;
+        border: 2px solid #dee2e6;
+        border-radius: 6px;
+        display: inline-block;
+        flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .color-item:hover .color-preview {
+        transform: scale(1.15);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .form-check-input:checked ~ .form-check-label .color-preview {
+        border-color: #0d6efd;
+        border-width: 3px;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+    }
+
+    .color-name {
+        font-size: 14px;
+        transition: color 0.3s ease;
+    }
+
+    /* Scrollbar styling for color list */
+    .color-selection::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .color-selection::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .color-selection::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+    .color-selection::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    /* Responsive */
+    @*@media (max-width: 768px) {
+        .color-selection .col-md-4 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+
+        .size-badge {
+            padding: 6px 12px;
+            font-size: 12px;
+            min-width: 40px;
+        }
+    }*@
+    </style>
+
+    <script>
+        // Toggle size badge selected class on checkbox change
+        document.querySelectorAll('.size-checkbox').forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                var badge = this.nextElementSibling.querySelector('.size-badge');
+                if (this.checked) {
+                    badge.classList.add('selected');
+                } else {
+                    badge.classList.remove('selected');
+                }
+            });
+        });
+    </script>
+
+
+    @* Upload New Images *@
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0">
+                <i class="fas fa-upload"></i> Thêm/Thay đổi hình ảnh
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Chọn ảnh mới (tùy chọn)</label>
+                <input type="file" name="productImages" multiple accept="image/*" class="form-control" id="productImages">
+                <div class="form-text">
+                    <i class="fas fa-info-circle"></i>
+                    Chọn ảnh mới để thay thế hoặc bổ sung. Để trống nếu không muốn thay đổi ảnh.
+                </div>
+            </div>
+
+            <div id="imagePreview" class="row"></div>
+        </div>
+    </div>
+</div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cog"></i> Cài đặt
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        @Html.LabelFor(model => model.BasePrice, "Giá cơ bản (VND)", new { @class = "form-label" })
+                        <input type="number"
+                               name="BasePrice"
+                               class="form-control"
+                               value="@Model.BasePrice.ToString("0")"
+                               step="1000"
+                               min="0"
+                               placeholder="0" />
+                        @Html.ValidationMessageFor(model => model.BasePrice, "", new { @class = "text-danger" })
+                    </div>
+
+
+                    <div class="mb-3 form-check">
+                        @Html.CheckBoxFor(model => model.IsActive, new { @class = "form-check-input" })
+                        @Html.LabelFor(model => model.IsActive, "Kích hoạt sản phẩm", new { @class = "form-check-label" })
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        @Html.CheckBoxFor(model => model.IsFeatured, new { @class = "form-check-input" })
+                        @Html.LabelFor(model => model.IsFeatured, "Sản phẩm nổi bật", new { @class = "form-check-label" })
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Lưu thay đổi
+                        </button>
+                        @Html.ActionLink("Hủy", "Index", "Admin", null, new { @class = "btn btn-secondary" })
+                    </div>
+
+                    <hr>
+
+                    <div class="text-muted small">
+                        <p><strong>ID:</strong> @Model.ProductID</p>
+                        <p><strong>Tạo:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy")</p>
+                        <p><strong>Cập nhật:</strong> @Model.UpdatedAt.ToString("dd/MM/yyyy")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* JavaScript for Image Preview *@
+<script>
+    document.getElementById('productImages').addEventListener('change', function (e) {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '';
+
+        const files = e.target.files;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 mb-3';
+                    col.innerHTML = `
+                    <div class="card border-success">
+                        <img src="${e.target.result}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                        <div class="card-body p-2">
+                            <small class="text-success">Ảnh mới: ${file.name}</small>
+                            ${i === 0 ? '<br><span class="badge bg-success">Sẽ là ảnh chính</span>' : ''}
+                        </div>
+                    </div>
+                `;
+                    preview.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+
+</script>

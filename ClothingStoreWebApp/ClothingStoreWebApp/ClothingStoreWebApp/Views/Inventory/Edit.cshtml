@@ -1,0 +1,204 @@
+﻿@model ClothingStoreWebApp.Models.Inventory
+
+@{
+    ViewBag.Title = "Chỉnh sửa kho hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2><i class="fas fa-edit"></i> Chỉnh sửa kho hàng - Variant</h2>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div<div class="card-header bg-primary text-white">
+            <h5>
+            @Model.ProductVariant.Product.ProductName
+            <small class="text-white-50">
+            (@Model.ProductVariant.Color.ColorName - @Model.ProductVariant.Size.SizeName)
+            </small>
+            </h5>
+            </div>
+            <div class="card-body">
+            @using (Html.BeginForm("Edit", "Inventory", FormMethod.Post, new { @class = "form-horizontal" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(model => model.InventoryID)
+                @Html.HiddenFor(model => model.VariantID)
+
+                <div class="form-group row">
+                <label class="col-sm-4 col-form-label"><strong>SKU:</strong></label>
+                <div class="col-sm-8">
+                <p class="form-control-plaintext">@Model.ProductVariant.SKU</p>
+                </div>
+                </div>
+
+                <div class="form-group row">
+                <label class="col-sm-4 col-form-label"><strong>Danh mục:</strong></label>
+                <div class="col-sm-8">
+                <p class="form-control-plaintext">@Model.ProductVariant.Product.Category?.CategoryName</p>
+                </div>
+                </div>
+
+                <div class="form-group row">
+                <label class="col-sm-4 col-form-label"><strong>Thương hiệu:</strong></label>
+                <div class="col-sm-8">
+                <p class="form-control-plaintext">@Model.ProductVariant.Product.Brand?.BrandName</p>
+                </div>
+                </div>
+
+                <div class="form-group row">
+                <label class="col-sm-4 col-form-label"><strong>Giá bán:</strong></label>
+                <div class="col-sm-8">
+                <p class="form-control-plaintext text-success">
+                <strong>@Model.ProductVariant.Price.ToString("N0") VNĐ</strong>
+                </p>
+                </div>
+                </div>
+
+                <hr />
+
+                <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Số lượng khả dụng</strong> = Số lượng có sẵn - Số lượng đã đặt
+                </div>
+
+                <div class="form-group row">
+                @Html.LabelFor(model => model.QuantityOnHand, "Số lượng có sẵn:", new { @class = "col-sm-4 col-form-label" })
+                <div class="col-sm-8">
+                @Html.EditorFor(model => model.QuantityOnHand, new { htmlAttributes = new { @class = "form-control", min = "0", type = "number" } })
+                @Html.ValidationMessageFor(model => model.QuantityOnHand, "", new { @class = "text-danger" })
+                <small class="form-text text-muted">Tổng số lượng thực tế trong kho</small>
+                </div>
+                </div>
+
+                <div class="form-group row">
+                @Html.LabelFor(model => model.QuantityReserved, "Số lượng đã đặt:", new { @class = "col-sm-4 col-form-label" })
+                <div class="col-sm-8">
+                @Html.EditorFor(model => model.QuantityReserved, new { htmlAttributes = new { @class = "form-control", min = "0", type = "number" } })
+                @Html.ValidationMessageFor(model => model.QuantityReserved, "", new { @class = "text-danger" })
+                <small class="form-text text-muted">Số lượng khách hàng đã đặt trước (chưa thanh toán)</small>
+                </div>
+                </div>
+
+                <div class="form-group row">
+                <label class="col-sm-4 col-form-label"><strong>Số lượng khả dụng:</strong></label>
+                <div class="col-sm-8">
+                <p class="form-control-plaintext">
+                <span class="badge badge-success badge-lg" style="font-size: 1.2em;">
+                @Model.AvailableQuantity
+                </span>
+                </p>
+                </div>
+                </div>
+
+                <hr />
+
+                <div class="form-group row">
+                <div class="col-sm-8 offset-sm-4">
+                <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-save"></i> Lưu thay đổi
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times"></i> Hủy
+                </a>
+                </div>
+                </div>
+            }
+            </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-image"></i> Hình ảnh sản phẩm</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="@(Model.ProductVariant.Product.ProductImages.FirstOrDefault()?.ImageURL ?? "/Content/images/no-image.png")"
+                         alt="@Model.ProductVariant.Product.ProductName"
+                         class="img-fluid rounded"
+                         style="max-height: 300px;" />
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h5><i class="fas fa-info-circle"></i> Trạng thái hiện tại</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td><strong>Trạng thái:</strong></td>
+                            <td>
+                                @if (Model.QuantityOnHand == 0)
+                                {
+                                    <span class="badge badge-danger">Hết hàng</span>
+                                }
+                                else if (Model.AvailableQuantity <= 0)
+                                {
+                                    <span class="badge badge-dark">Đã đặt hết</span>
+                                }
+                                else if (Model.AvailableQuantity <= 20)
+                                {
+                                    <span class="badge badge-warning">Sắp hết</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-success">Còn hàng</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cập nhật lúc:</strong></td>
+                            <td>@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Màu sắc:</strong></td>
+                            <td>
+                                <span class="badge badge-secondary">@Model.ProductVariant.Color.ColorName</span>
+                                <span style="display:inline-block; width:20px; height:20px; background-color:@Model.ProductVariant.Color.ColorCode; border:1px solid #ccc; margin-left:5px;"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kích thước:</strong></td>
+                            <td><span class="badge badge-secondary">@Model.ProductVariant.Size.SizeName</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-calculator"></i> Tính toán</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Giá trị kho:</strong></p>
+                    <h4 class="text-success">
+                        @((Model.QuantityOnHand * Model.ProductVariant.Price).ToString("N0")) VNĐ
+                    </h4>
+                    <hr />
+                    <p><strong>Giá trị khả dụng:</strong></p>
+                    <h4 class="text-primary">
+                        @((Model.AvailableQuantity * Model.ProductVariant.Price).ToString("N0")) VNĐ
+                    </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        // Real-time calculation of available quantity
+        $('#QuantityOnHand, #QuantityReserved').on('input', function() {
+            var onHand = parseInt($('#QuantityOnHand').val()) || 0;
+            var reserved = parseInt($('#QuantityReserved').val()) || 0;
+            var available = onHand - reserved;
+
+            // Update the display (you can add a live preview element if needed)
+            console.log('Available quantity: ' + available);
+        });
+    </script>
+}
